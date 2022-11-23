@@ -1,4 +1,4 @@
-service: aws-node-project
+service: vega-test
 
 frameworkVersion: "3"
 
@@ -7,15 +7,41 @@ provider:
   runtime: nodejs16.x
   architecture: arm64
   timeout: 10
+  # environment:
+  #   APP_ENV_VARIABLE: FOOBAR
+  stage: dev
+
+plugins:
+  - serverless-plugin-git-variables
+
+custom:
+  prodBranch:
+    main: "prod-"
+    dev: ${opt.stage}-${git:branch}-
+  namePfx: ${self:custom.prodBranch.${git:branch}, ${opt.stage}-${git:branch}-}
 
 functions:
   hello:
+    name: ${self:custom.namePfx}hello
     handler: handler.hello
     events:
       - httpApi: ANY /hello
+# resources:
+#   Resources:
+#     #Certificates: ${file(./serverless-certificates.yml)}
+#     #
+#     # Create Route 53 (sub-domains) records
+#     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html
+#     #
+#     Route53:
+#       Type: AWS::Route53::RecordSet
+#       Properties:
+#         HostedZoneName: "bidiboo.com."
+#         Comment: Branch ${git:stage} {$self:provider.stage}
+#         Name: ${git:basePath}.bidiboo.com #TODO git branch
+#         Type: CNAME
+#         TTL: 300
+#         ResourceRecords:
+#           - cname.vercel-dns.com
 
-resources:
-  Resources:
-    Certificates: ${file(./serverless-certificates.yml)}
-    Route53: ${file(./serverless-route53.yml)}
-    CloudFrontDistribution: ${file(./serverless-cloudfront.yml)}
+#     CloudFrontDistribution: ${file(./serverless-cloudfront.yml)}

@@ -1,0 +1,214 @@
+#
+# Create Cloudfront Distribution
+#
+# Export an existing cloudfront distribution:
+# aws cloudfront get-distribution-config --id E1VKJ3NZ5SO2Y2 --output yaml
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-originshield.html
+Type: AWS::CloudFront::Distribution
+Properties:
+  DistributionConfig:
+    HttpVersion: http2and3
+    #IsIPV6Enabled: true error: extraneous key [IsIPV6Enabled] is not permitted
+    PriceClass: PriceClass_100
+    # Aliases: #TODO
+    #   - devegapi.bidiboo.com
+    #   - devegapi.kingpet.com
+    #   - devegassets.playgrnd.media
+    #   - devegapi.playgrnd.media
+    ViewerCertificate:
+      AcmCertificateArn: arn:aws:acm:us-east-1:327381650662:certificate/cd171bd4-95a1-48a3-bbaa-1304c45cc520 #TODO
+      SslSupportMethod: sni-only
+      MinimumProtocolVersion: TLSv1.2_2021
+    # Origins
+    Origins:
+      - Id: Api Gateway
+        DomainName: c4ixkq2aw7.execute-api.us-east-1.amazonaws.com #TODO
+        #  ${ApiGatewayRestApi}
+        # !Join [
+        #   "",
+        #   [
+        #     !Ref ApiGatewayRestApi,
+        #     .,
+        #     execute-api,
+        #     .,
+        #     !Ref "AWS::Region",
+        #     .,
+        #     amazonaws.com,
+        #   ],
+        # ]
+        CustomOriginConfig:
+          HTTPSPort: 443
+          OriginProtocolPolicy: https-only
+          OriginSSLProtocols:
+            - TLSv1.2
+        OriginShield:
+          Enabled: true
+          OriginShieldRegion: "us-east-1"
+      - Id: Vercel
+        DomainName: vega-dev.vercel.app
+        CustomOriginConfig:
+          HTTPSPort: 443
+          OriginProtocolPolicy: https-only
+          OriginSSLProtocols:
+            - TLSv1.2
+        OriginShield:
+          Enabled: true
+          OriginShieldRegion: "us-east-1"
+    Enabled: true
+    Comment: Some comment #TODO
+    #=====================================
+    # DefaultCacheBehavior
+    #=====================================
+    DefaultCacheBehavior:
+      AllowedMethods:
+        - DELETE
+        - GET
+        - HEAD
+        - OPTIONS
+        - PATCH
+        - POST
+        - PUT
+      CachedMethods:
+        - GET
+        - HEAD
+      CachePolicyId: db370968-d233-4984-991e-c8f1f658f425 #TODO
+      Compress: true
+      FunctionAssociations:
+        - FunctionARN: arn:aws:cloudfront::327381650662:function/Vega-Set-Forwarded-Host #TODO
+          EventType: "viewer-request"
+      TargetOriginId: Api Gateway
+      ViewerProtocolPolicy: https-only
+    CacheBehaviors:
+      # /ph/*
+      - PathPattern: "/ph/*"
+        AllowedMethods:
+          - GET
+          - HEAD
+        CachedMethods:
+          - GET
+          - HEAD
+        CachePolicyId: 4114ab1b-1405-4266-a869-63ec5bfc439c #TODO
+        Compress: true
+        FunctionAssociations:
+          - FunctionARN: arn:aws:cloudfront::327381650662:function/Vega-Set-Forwarded-Host #TODO
+            EventType: "viewer-request"
+        TargetOriginId: Api Gateway
+        ViewerProtocolPolicy: https-only
+      #=====================================
+      # /v7/a/*
+      #=====================================
+      - PathPattern: "/v7/a/*"
+        AllowedMethods:
+          - DELETE
+          - GET
+          - HEAD
+          - OPTIONS
+          - PATCH
+          - POST
+          - PUT
+        CachedMethods:
+          - GET
+          - HEAD
+        CachePolicyId: 6f8b1995-bc1b-49bc-87a6-fd3493e2f5b9 #TODO
+        Compress: true
+        FunctionAssociations:
+          - FunctionARN: arn:aws:cloudfront::327381650662:function/Vega-Set-Forwarded-Host #TODO
+            EventType: "viewer-request"
+        ResponseHeadersPolicyId: 5cc3b908-e619-4b99-88e5-2cf7f45965bd #TODO
+        TargetOriginId: Api Gateway
+        ViewerProtocolPolicy: https-only
+      #=====================================
+      # /v7/admin/*
+      #=====================================
+      - PathPattern: "/v7/admin/*"
+        AllowedMethods:
+          - DELETE
+          - GET
+          - HEAD
+          - OPTIONS
+          - PATCH
+          - POST
+          - PUT
+        CachedMethods:
+          - GET
+          - HEAD
+        CachePolicyId: 6f8b1995-bc1b-49bc-87a6-fd3493e2f5b9 #TODO
+        Compress: true
+        FunctionAssociations:
+          - FunctionARN: arn:aws:cloudfront::327381650662:function/Vega-Set-Forwarded-Host #TODO
+            EventType: "viewer-request"
+        ResponseHeadersPolicyId: 5cc3b908-e619-4b99-88e5-2cf7f45965bd #TODO
+        TargetOriginId: Api Gateway
+        ViewerProtocolPolicy: https-only
+      #=====================================
+      # /v7/c/*
+      #=====================================
+      - PathPattern: "/v7/c/*"
+        AllowedMethods:
+          - GET
+          - HEAD
+        CachedMethods:
+          - GET
+          - HEAD
+        CachePolicyId: 8445ee16-cda4-4000-b8a3-b1aa80047d20 #TODO
+        Compress: true
+        FunctionAssociations:
+          - FunctionARN: arn:aws:cloudfront::327381650662:function/Vega-Set-Forwarded-Host #TODO
+            EventType: "viewer-request"
+        ResponseHeadersPolicyId: 5cc3b908-e619-4b99-88e5-2cf7f45965bd #TODO
+        TargetOriginId: Api Gateway
+        ViewerProtocolPolicy: https-only
+      #=====================================
+      # /v7/auth/?et-session
+      #=====================================
+      - PathPattern: "/v7/auth/?et-session"
+        AllowedMethods:
+          - DELETE
+          - GET
+          - HEAD
+          - OPTIONS
+          - PATCH
+          - POST
+          - PUT
+        CachedMethods:
+          - GET
+          - HEAD
+        CachePolicyId: 6f8b1995-bc1b-49bc-87a6-fd3493e2f5b9 #TODO
+        Compress: true
+        FunctionAssociations:
+          - FunctionARN: arn:aws:cloudfront::327381650662:function/Vega-Set-Forwarded-Host #TODO
+            EventType: "viewer-request"
+        ResponseHeadersPolicyId: d433d2a9-5c36-45eb-a99e-a295942cd9f7 #TODO
+        TargetOriginId: Api Gateway
+        ViewerProtocolPolicy: https-only
+      #=====================================
+      # /v7/auth/*
+      #=====================================
+      - PathPattern: "/v7/auth/*"
+        AllowedMethods:
+          - GET
+          - HEAD
+        CachedMethods:
+          - GET
+          - HEAD
+        CachePolicyId: 8445ee16-cda4-4000-b8a3-b1aa80047d20 #TODO
+        Compress: true
+        FunctionAssociations:
+          - FunctionARN: arn:aws:cloudfront::327381650662:function/Vega-Set-Forwarded-Host #TODO
+            EventType: "viewer-request"
+        TargetOriginId: Api Gateway
+        ViewerProtocolPolicy: https-only
+      #=====================================
+      # /_next/static/*
+      #=====================================
+      - PathPattern: "/_next/static/*"
+        AllowedMethods:
+          - GET
+          - HEAD
+        CachedMethods:
+          - GET
+          - HEAD
+        CachePolicyId: 9f3b4511-4293-43f0-b24b-0a15a78c4d31 #TODO
+        Compress: true
+        TargetOriginId: Vercel
+        ViewerProtocolPolicy: https-only
