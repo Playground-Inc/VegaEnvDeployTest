@@ -1,0 +1,21 @@
+service: aws-node-project
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  architecture: arm64
+  timeout: 10
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - httpApi: ANY /hello
+
+resources:
+  Resources:
+    Certificates: ${file(./serverless-certificates.yml)}
+    Route53: ${file(./serverless-route53.yml)}
+    CloudFrontDistribution: ${file(./serverless-cloudfront.yml)}
