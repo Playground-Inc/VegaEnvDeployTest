@@ -1,0 +1,17 @@
+---
+Resources:
+  #
+  # Elasticache (Redis)
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticache-cache-cluster.html
+  ElasticCacheCluster:
+    Type: AWS::ElastiCache::CacheCluster
+    Properties:
+      ClusterName: !Ref AWS::StackName
+      #TransitEncryptionEnabled: true #Encryption feature is not supported for engine REDIS
+      AutoMinorVersionUpgrade: true
+      Engine: redis
+      CacheNodeType: ${self:custom.elasticacheInstance}
+      NumCacheNodes: 1
+      VpcSecurityGroupIds:
+        - !GetAtt [AppSecurityGroup, GroupId]
+      CacheSubnetGroupName: !Ref ElastiCacheSubnetGroup

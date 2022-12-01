@@ -1,0 +1,360 @@
+---
+Resources:
+  #
+  # Create Cloudfront Function to rewrite host header and detect webp/avif
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudfront-function.html
+  # https://gist.github.com/mikebroberts/09e8c8b4aaac6e26149c4622fd492414
+  #
+  CloudfrontFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      AutoPublish: true
+      FunctionCode: !Sub |
+        function handler(evt) {
+          var request = evt.request,
+            headers = request.headers,
+            //ua = headers["user-agent"] ? headers["user-agent"].value.toLowerCase() : "",
+            host = headers.host.value;
+
+          // Image only, no fm or png
+          if (
+            request.uri.substring(0, 4) === "/ph/" &&
+            headers.accept &&
+            !request.querystring.fm &&
+            request.uri.indexOf(".png") === -1
+          ) {
+            // Pas de format, ou png
+            var accept = headers.accept.value || "";
+
+            // Accept Avif
+            if (accept.indexOf("avif") !== -1)
+              request.querystring.fm = { value: "avif" };
+            // Accept Webp
+            else if (accept.indexOf("webp") !== -1)
+              request.querystring.fm = { value: "webp" };
+            // Jpg
+            else request.querystring.fm = { value: "jpg" };
+          }
+
+          // String normalize (not working)
+          // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-examples.html#lambda-examples-query-string-examples
+          // var sortedParams = {};
+          // var qs = [];
+          // Object.keys(request.querystring)
+          //   .sort()
+          //   .forEach((key) => {
+          //     var value = request.querystring[key].value;
+          //     if (value && value !== "false" && value !== "undefined")
+          //       sortedParams[key] = { value: value };
+          //     qs.push(key + "=" + value);
+          //   });
+          //request.querystring = sortedParams;
+
+          // Set host
+          headers["x-forwarded-host"] = { value: host };
+
+          return request;
+        }
+      FunctionConfig:
+        Comment: !Sub "${AWS::StackName} rewrite host and detect webp / avif"
+        Runtime: cloudfront-js-1.0
+      Name: !Sub "${AWS::StackName}-redirectFunction"
+  #
+  # Cloudfront Cache Policies
+  #
+  # Lister les policies: aws cloudfront list-cache-policies  --profile prod --type custom --output yaml
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-cachepolicy-cachepolicyconfig.html
+  #
+  # Long Cache (1 year) + query strings + forwarded host
+  #
+  CachePolicyLongCacheQsHost:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Comment: Long Cache (1 year) + query strings + forwarded host
+        MaxTTL: 315360000
+        MinTTL: 31536000
+        DefaultTTL: 31536000
+        Name: ${self:service}-LongCacheQsHost-${sls:stage}
+        ParametersInCacheKeyAndForwardedToOrigin:
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers:
+              - x-forwarded-host
+          QueryStringsConfig:
+            QueryStringBehavior: all
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true
+  #
+  # Geo Headers + query strings
+  #
+  CachePolicyGeoHeadersQs:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Comment: Geo headers + query strings
+        DefaultTTL: 3
+        MaxTTL: 31536000
+        MinTTL: 0
+        Name: ${self:service}-GeoHeadersQs-${sls:stage}
+        ParametersInCacheKeyAndForwardedToOrigin:
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers: # 10 max
+              - Access-Control-Request-Method
+              - Authorization
+              - CloudFront-Viewer-Country
+              - CloudFront-Viewer-Longitude
+              - CloudFront-Viewer-Latitude
+              - CloudFront-Viewer-City
+              - CloudFront-Viewer-Country-Region
+              - CloudFront-Viewer-Time-Zone
+              - User-Agent
+              - x-forwarded-host
+          QueryStringsConfig:
+            QueryStringBehavior: all
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true
+  #
+  # Auth Stripe Host Qs
+  #
+  CachePolicyAuthStripeHostQs:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Comment: Authorization + Stripe + forwarded host + query strings
+        DefaultTTL: 3
+        MaxTTL: 31536000
+        MinTTL: 0
+        Name: ${self:service}-AuthStripeHostQs-${sls:stage}
+        ParametersInCacheKeyAndForwardedToOrigin:
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers: # 10 max
+              - Authorization
+              - x-forwarded-host
+              - Access-Control-Request-Method
+              - stripe-signature
+          QueryStringsConfig:
+            QueryStringBehavior: all
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true
+  #
+  # Create Cloudfront Distribution
+  #
+  # Export an existing cloudfront distribution:
+  # aws cloudfront get-distribution-config --id E1VKJ3NZ5SO2Y2 --output yaml
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-distributionconfig.html
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    DependsOn:
+      - Certificate
+    Properties:
+      DistributionConfig:
+        HttpVersion: http2and3
+        #IsIPV6Enabled: true error: extraneous key [IsIPV6Enabled] is not permitted
+        PriceClass: PriceClass_100
+        Aliases:
+          - ${self:custom.subDomainApi}.bidi.boo
+          - ${self:custom.subDomainApi}.playgrnd.media
+        # TODO <------
+        ViewerCertificate:
+          AcmCertificateArn: !Ref Certificate
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        # Origins
+        Origins:
+          - Id: Api Gateway
+            DomainName:
+              !Join [
+                ".",
+                [
+                  !Ref HttpApi,
+                  execute-api,
+                  "us-east-1",
+                  !Ref AWS::Region,
+                  amazonaws.com,
+                ],
+              ]
+            CustomOriginConfig:
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+            OriginShield:
+              Enabled: true
+              OriginShieldRegion: !Ref AWS::Region
+          - Id: Vercel
+            DomainName: vega-${sls:stage}.vercel.app
+            CustomOriginConfig:
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+            OriginShield:
+              Enabled: true
+              OriginShieldRegion: !Ref AWS::Region
+        Enabled: true
+        Comment: ${self:service} ${sls:stage}
+        #=====================================
+        # DefaultCacheBehavior
+        #=====================================
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - DELETE
+            - GET
+            - HEAD
+            - OPTIONS
+            - PATCH
+            - POST
+            - PUT
+          CachedMethods:
+            - GET
+            - HEAD
+          CachePolicyId: !GetAtt CachePolicyAuthStripeHostQs.Id
+          Compress: true
+          FunctionAssociations:
+            - FunctionARN: !GetAtt CloudfrontFunction.FunctionARN
+              EventType: "viewer-request"
+          TargetOriginId: Api Gateway
+          ViewerProtocolPolicy: https-only
+        CacheBehaviors:
+          # /ph/*
+          - PathPattern: "/ph/*"
+            AllowedMethods:
+              - GET
+              - HEAD
+            CachedMethods:
+              - GET
+              - HEAD
+            CachePolicyId: !GetAtt CachePolicyLongCacheQsHost.Id
+            Compress: true
+            FunctionAssociations:
+              - FunctionARN: !GetAtt CloudfrontFunction.FunctionARN
+                EventType: "viewer-request"
+            TargetOriginId: Api Gateway
+            ViewerProtocolPolicy: https-only
+          #=====================================
+          # /v7/a/*
+          #=====================================
+          - PathPattern: "/v7/a/*"
+            AllowedMethods:
+              - DELETE
+              - GET
+              - HEAD
+              - OPTIONS
+              - PATCH
+              - POST
+              - PUT
+            CachedMethods:
+              - GET
+              - HEAD
+            CachePolicyId: !GetAtt CachePolicyGeoHeadersQs.Id
+            Compress: true
+            FunctionAssociations:
+              - FunctionARN: !GetAtt CloudfrontFunction.FunctionARN
+                EventType: "viewer-request"
+            #ResponseHeadersPolicyId: 5cc3b908-e619-4b99-88e5-2cf7f45965bd #TODO
+            TargetOriginId: Api Gateway
+            ViewerProtocolPolicy: https-only
+          #=====================================
+          # /v7/admin/*
+          #=====================================
+          - PathPattern: "/v7/admin/*"
+            AllowedMethods:
+              - DELETE
+              - GET
+              - HEAD
+              - OPTIONS
+              - PATCH
+              - POST
+              - PUT
+            CachedMethods:
+              - GET
+              - HEAD
+            CachePolicyId: !GetAtt CachePolicyGeoHeadersQs.Id
+            Compress: true
+            FunctionAssociations:
+              - FunctionARN: !GetAtt CloudfrontFunction.FunctionARN
+                EventType: "viewer-request"
+            #ResponseHeadersPolicyId: 5cc3b908-e619-4b99-88e5-2cf7f45965bd #TODO
+            TargetOriginId: Api Gateway
+            ViewerProtocolPolicy: https-only
+          #=====================================
+          # /v7/c/*
+          #=====================================
+          # - PathPattern: "/v7/c/*"
+          #   AllowedMethods:
+          #     - GET
+          #     - HEAD
+          #   CachedMethods:
+          #     - GET
+          #     - HEAD
+          #   CachePolicyId: 8445ee16-cda4-4000-b8a3-b1aa80047d20 #TODO
+          #   Compress: true
+          #   FunctionAssociations:
+          #     - FunctionARN: !GetAtt CloudfrontFunction.FunctionARN
+          #       EventType: "viewer-request"
+          #   ResponseHeadersPolicyId: 5cc3b908-e619-4b99-88e5-2cf7f45965bd #TODO
+          #   TargetOriginId: Api Gateway
+          #   ViewerProtocolPolicy: https-only
+          #=====================================
+          # /v7/auth/?et-session
+          #=====================================
+          # - PathPattern: "/v7/auth/?et-session"
+          #   AllowedMethods:
+          #     - DELETE
+          #     - GET
+          #     - HEAD
+          #     - OPTIONS
+          #     - PATCH
+          #     - POST
+          #     - PUT
+          #   CachedMethods:
+          #     - GET
+          #     - HEAD
+          #   CachePolicyId: CachePolicyGeoHeadersQs.Id
+          #   Compress: true
+          #   FunctionAssociations:
+          #     - FunctionARN: !GetAtt CloudfrontFunction.FunctionARN
+          #       EventType: "viewer-request"
+          #   ResponseHeadersPolicyId: d433d2a9-5c36-45eb-a99e-a295942cd9f7 #TODO
+          #   TargetOriginId: Api Gateway
+          #   ViewerProtocolPolicy: https-only
+          #=====================================
+          # /v7/auth/*
+          #=====================================
+          - PathPattern: "/v7/auth/*"
+            AllowedMethods:
+              - GET
+              - HEAD
+            CachedMethods:
+              - GET
+              - HEAD
+            CachePolicyId: !GetAtt CachePolicyGeoHeadersQs.Id
+            Compress: true
+            FunctionAssociations:
+              - FunctionARN: !GetAtt CloudfrontFunction.FunctionARN
+                EventType: "viewer-request"
+            TargetOriginId: Api Gateway
+            ViewerProtocolPolicy: https-only
+          #=====================================
+          # /_next/static/*
+          #=====================================
+          - PathPattern: "/_next/static/*"
+            AllowedMethods:
+              - GET
+              - HEAD
+            CachedMethods:
+              - GET
+              - HEAD
+            CachePolicyId: !GetAtt CachePolicyLongCacheQsHost.Id
+            Compress: true
+            TargetOriginId: Vercel
+            ViewerProtocolPolicy: https-only

@@ -1,0 +1,23 @@
+---
+Resources:
+  #
+  # Create SSL Certificate
+  #
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-certificatemanager-certificate.html
+  #
+  # Inspired by:
+  # https://hands-on.cloud/aws-cloudformation-how-to-automatically-validate-acm-ssl-certificate/
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: "*.dev.playgrnd.media"
+      SubjectAlternativeNames:
+        - "*.dev.bidi.boo"
+        - "*.dev.king.pet"
+        # - "king.pet"
+        # - "littlemiss.beauty"
+        # - "*.littlemiss.beauty"
+      ValidationMethod: DNS
+      # DomainValidationOptions:
+      #   - DomainName: "*.dev.playgrnd.media"
+      #   - DomainName: "*.dev.bidi.boo"

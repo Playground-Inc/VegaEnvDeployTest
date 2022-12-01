@@ -1,0 +1,26 @@
+---
+Resources:
+  #
+  # VPC Inbound rules for Redis
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-ingress.html#cfn-ec2-security-group-ingress-description
+  SecurityGroupIngress:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      GroupId: !GetAtt [AppSecurityGroup, GroupId]
+      SourceSecurityGroupId: !GetAtt [AppSecurityGroup, GroupId]
+      Description: Allow Redis Inbound
+      FromPort: 6379
+      ToPort: 6379
+      IpProtocol: "tcp"
+  #
+  # VPC Outbound rules for Redis
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-ingress.html#cfn-ec2-security-group-egress-description
+  SecurityGroupEgress:
+    Type: "AWS::EC2::SecurityGroupEgress"
+    Properties:
+      GroupId: !GetAtt [AppSecurityGroup, GroupId]
+      SourceSecurityGroupId: !GetAtt [AppSecurityGroup, GroupId]
+      Description: Allow Redis Outbound
+      FromPort: 6379
+      ToPort: 6379
+      IpProtocol: "tcp"
