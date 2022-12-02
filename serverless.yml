@@ -2,6 +2,9 @@ service: vega-deployment
 
 frameworkVersion: "3"
 
+package:
+  individually: true
+
 provider:
   name: aws
   runtime: nodejs16.x
@@ -14,6 +17,7 @@ provider:
   httpApi:
     name: ${self:service}-${sls:stage}
   environment:
+    PWD_SALT: ${ssm:PWD_SALT}
     REDIS_HOST:
       Fn::GetAtt: [ElasticCacheCluster, RedisEndpoint.Address]
     DYNAMO_SFX: ${self:custom.dynamoSfx}
@@ -31,6 +35,7 @@ custom:
   generalStage: ${ternary( ${sls:stage}, prod, prod, dev )} # prod | dev
   subDomain: ${ternary( ${sls:stage}, prod, xxx, ${sls:stage}.dev )} #TODO xxx -> www
   subDomainApi: ${ternary(${sls:stage}, prod, api, ${sls:stage}-api.dev )}
+  subDomainPfx: ${ternary(${sls:stage}, prod, "", "dev." )}
   dynamoSfx: ${ternary(${sls:stage}, prod, "", _TEST${ternary(${file(./serverlessEnv.yml):CREATE_NEW_DB}, true, _${sls:stage}, "" )} )}
   elasticacheInstance: ${ternary( ${sls:stage}, prod, cache.m6g.large, cache.t2.micro )} # cache.m6g.large or cache.m6g.xlarge for prod
   vpcConfig:
@@ -56,12 +61,15 @@ functions:
   hello:
     handler: handler.hello
     events:
-      - httpApi: ANY /hello
+      - httpApi: ANY /v7/hello
 
 resources:
   - ${file(resources/Certificate.yml)}
-  - ${file(resources/Cloudfront.yml)}
-  - ${file(resources/Route53.yml)}
+  - ${file(resources/CloudfrontFunctions.yml)}
+  - ${file(resources/CloudfrontCachePolicies.yml)}
+  - ${file(resources/CloudfrontDistribution.yml)}
+  - ${file(resources/Route53Vercel.yml)}
+  - ${file(resources/Route53Api.yml)}
   - ${file(resources/DynamoDb.yml)}
   - ${file(resources/Vpc.yml)}
   - ${file(resources/Elasticache.yml)}

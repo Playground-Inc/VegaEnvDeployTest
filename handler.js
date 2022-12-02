@@ -16,14 +16,14 @@ module.exports.hello = async (event) => {
     statusCode: 200,
     body: JSON.stringify(
       {
-        message: "Go Serverless v3.0!!",
-        //input: event,
+        API_GATEWAY: event.headers.host,
+        X_FORWARDED_HOST: event.headers["x-forwarded-host"],
         REDIS_HOST: process.env.REDIS_HOST,
         DYNAMO_SFX: process.env.DYNAMO_SFX,
         BRANCH: process.env.BRANCH,
         SUB_DOMAIN: process.env.SUB_DOMAIN,
+        PWD_SALT: process.env.PWD_SALT,
         SUB_DOMAIN_API: process.env.SUB_DOMAIN_API,
-        // TABLES: tables,
       },
       null,
       2

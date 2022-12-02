@@ -1,0 +1,88 @@
+---
+Resources:
+  #
+  # Cloudfront Cache Policies
+  #
+  # Lister les policies: aws cloudfront list-cache-policies  --profile prod --type custom --output yaml
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-cachepolicy-cachepolicyconfig.html
+  #
+  # Long Cache (1 year) + query strings + forwarded host
+  #
+  CachePolicyLongCacheQsHost:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Comment: Long Cache (1 year) + query strings + forwarded host
+        MaxTTL: 315360000
+        MinTTL: 31536000
+        DefaultTTL: 31536000
+        Name: ${self:service}-LongCacheQsHost-${sls:stage}
+        ParametersInCacheKeyAndForwardedToOrigin:
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers:
+              - x-forwarded-host
+          QueryStringsConfig:
+            QueryStringBehavior: all
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true
+  #
+  # Geo Headers + query strings
+  #
+  CachePolicyGeoHeadersQs:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Comment: Geo headers + query strings
+        DefaultTTL: 3
+        MaxTTL: 31536000
+        MinTTL: 0
+        Name: ${self:service}-GeoHeadersQs-${sls:stage}
+        ParametersInCacheKeyAndForwardedToOrigin:
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers: # 10 max
+              - Access-Control-Request-Method
+              - Authorization
+              - CloudFront-Viewer-Country
+              - CloudFront-Viewer-Longitude
+              - CloudFront-Viewer-Latitude
+              - CloudFront-Viewer-City
+              - CloudFront-Viewer-Country-Region
+              - CloudFront-Viewer-Time-Zone
+              - User-Agent
+              - x-forwarded-host
+          QueryStringsConfig:
+            QueryStringBehavior: all
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true
+  #
+  # Auth Stripe Host Qs
+  #
+  CachePolicyAuthStripeHostQs:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Comment: Authorization + Stripe + forwarded host + query strings
+        DefaultTTL: 3
+        MaxTTL: 31536000
+        MinTTL: 0
+        Name: ${self:service}-AuthStripeHostQs-${sls:stage}
+        ParametersInCacheKeyAndForwardedToOrigin:
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers: # 10 max
+              - Authorization
+              - x-forwarded-host
+              - Access-Control-Request-Method
+              - stripe-signature
+          QueryStringsConfig:
+            QueryStringBehavior: all
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true

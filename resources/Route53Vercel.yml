@@ -1,0 +1,196 @@
+---
+Resources:
+  #
+  # Create Vercel Route 53 (sub-domains) records
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html
+  #
+  BaybeeFrVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}baybee.fr.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.baybee.fr
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  BaybeeBeVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}baybee.be.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.baybee.be
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  BaybeeChVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}baybee.ch.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.baybee.ch
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  BidibooVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}bidi.boo.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.bidi.boo
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  BidibooComVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}bidiboo.com.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.bidiboo.com
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  BidibooCoUkVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}bidiboo.co.uk.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.bidiboo.co.uk
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  KingPetVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}king.pet.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.king.pet
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  KingPetFrVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}kingpet.fr.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.kingpet.fr
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  KingPetBeVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}kingpet.be.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.kingpet.be
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  KingPetChVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}kingpet.ch.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.kingpet.ch
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  KingPetComVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}kingpet.com.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.kingpet.com
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  KingPetCoUkVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}kingpet.co.uk.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.kingpet.co.uk
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  LittleMissBeautyVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}littlemiss.beauty.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.littlemiss.beauty
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  LittleMissBeautyComVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}littlemissbeauty.com.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.littlemissbeauty.com
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  LullaPandaComVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}lullapanda.com.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.lullapanda.com
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  MissPrincesseFrVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}missprincesse.fr.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.missprincesse.fr
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  MissPrincesseBeVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}missprincesse.be.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.missprincesse.be
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  MissPrincesseChVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}missprincesse.ch.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.missprincesse.ch
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
+  PageantDogVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}pageant.dog.
+      Comment: ${sls:stage}
+      Name: ${self:custom.subDomain}.pageant.dog
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com

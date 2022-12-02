@@ -1,151 +1,6 @@
 ---
 Resources:
   #
-  # Create Cloudfront Function to rewrite host header and detect webp/avif
-  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudfront-function.html
-  # https://gist.github.com/mikebroberts/09e8c8b4aaac6e26149c4622fd492414
-  #
-  CloudfrontFunction:
-    Type: AWS::CloudFront::Function
-    Properties:
-      AutoPublish: true
-      FunctionCode: !Sub |
-        function handler(evt) {
-          var request = evt.request,
-            headers = request.headers,
-            //ua = headers["user-agent"] ? headers["user-agent"].value.toLowerCase() : "",
-            host = headers.host.value;
-
-          // Image only, no fm or png
-          if (
-            request.uri.substring(0, 4) === "/ph/" &&
-            headers.accept &&
-            !request.querystring.fm &&
-            request.uri.indexOf(".png") === -1
-          ) {
-            // Pas de format, ou png
-            var accept = headers.accept.value || "";
-
-            // Accept Avif
-            if (accept.indexOf("avif") !== -1)
-              request.querystring.fm = { value: "avif" };
-            // Accept Webp
-            else if (accept.indexOf("webp") !== -1)
-              request.querystring.fm = { value: "webp" };
-            // Jpg
-            else request.querystring.fm = { value: "jpg" };
-          }
-
-          // String normalize (not working)
-          // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-examples.html#lambda-examples-query-string-examples
-          // var sortedParams = {};
-          // var qs = [];
-          // Object.keys(request.querystring)
-          //   .sort()
-          //   .forEach((key) => {
-          //     var value = request.querystring[key].value;
-          //     if (value && value !== "false" && value !== "undefined")
-          //       sortedParams[key] = { value: value };
-          //     qs.push(key + "=" + value);
-          //   });
-          //request.querystring = sortedParams;
-
-          // Set host
-          headers["x-forwarded-host"] = { value: host };
-
-          return request;
-        }
-      FunctionConfig:
-        Comment: !Sub "${AWS::StackName} rewrite host and detect webp / avif"
-        Runtime: cloudfront-js-1.0
-      Name: !Sub "${AWS::StackName}-redirectFunction"
-  #
-  # Cloudfront Cache Policies
-  #
-  # Lister les policies: aws cloudfront list-cache-policies  --profile prod --type custom --output yaml
-  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-cachepolicy-cachepolicyconfig.html
-  #
-  # Long Cache (1 year) + query strings + forwarded host
-  #
-  CachePolicyLongCacheQsHost:
-    Type: AWS::CloudFront::CachePolicy
-    Properties:
-      CachePolicyConfig:
-        Comment: Long Cache (1 year) + query strings + forwarded host
-        MaxTTL: 315360000
-        MinTTL: 31536000
-        DefaultTTL: 31536000
-        Name: ${self:service}-LongCacheQsHost-${sls:stage}
-        ParametersInCacheKeyAndForwardedToOrigin:
-          HeadersConfig:
-            HeaderBehavior: whitelist
-            Headers:
-              - x-forwarded-host
-          QueryStringsConfig:
-            QueryStringBehavior: all
-          CookiesConfig:
-            CookieBehavior: none
-          EnableAcceptEncodingBrotli: true
-          EnableAcceptEncodingGzip: true
-  #
-  # Geo Headers + query strings
-  #
-  CachePolicyGeoHeadersQs:
-    Type: AWS::CloudFront::CachePolicy
-    Properties:
-      CachePolicyConfig:
-        Comment: Geo headers + query strings
-        DefaultTTL: 3
-        MaxTTL: 31536000
-        MinTTL: 0
-        Name: ${self:service}-GeoHeadersQs-${sls:stage}
-        ParametersInCacheKeyAndForwardedToOrigin:
-          HeadersConfig:
-            HeaderBehavior: whitelist
-            Headers: # 10 max
-              - Access-Control-Request-Method
-              - Authorization
-              - CloudFront-Viewer-Country
-              - CloudFront-Viewer-Longitude
-              - CloudFront-Viewer-Latitude
-              - CloudFront-Viewer-City
-              - CloudFront-Viewer-Country-Region
-              - CloudFront-Viewer-Time-Zone
-              - User-Agent
-              - x-forwarded-host
-          QueryStringsConfig:
-            QueryStringBehavior: all
-          CookiesConfig:
-            CookieBehavior: none
-          EnableAcceptEncodingBrotli: true
-          EnableAcceptEncodingGzip: true
-  #
-  # Auth Stripe Host Qs
-  #
-  CachePolicyAuthStripeHostQs:
-    Type: AWS::CloudFront::CachePolicy
-    Properties:
-      CachePolicyConfig:
-        Comment: Authorization + Stripe + forwarded host + query strings
-        DefaultTTL: 3
-        MaxTTL: 31536000
-        MinTTL: 0
-        Name: ${self:service}-AuthStripeHostQs-${sls:stage}
-        ParametersInCacheKeyAndForwardedToOrigin:
-          HeadersConfig:
-            HeaderBehavior: whitelist
-            Headers: # 10 max
-              - Authorization
-              - x-forwarded-host
-              - Access-Control-Request-Method
-              - stripe-signature
-          QueryStringsConfig:
-            QueryStringBehavior: all
-          CookiesConfig:
-            CookieBehavior: none
-          EnableAcceptEncodingBrotli: true
-          EnableAcceptEncodingGzip: true
-  #
   # Create Cloudfront Distribution
   #
   # Export an existing cloudfront distribution:
@@ -153,17 +8,32 @@ Resources:
   # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-distributionconfig.html
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
-    DependsOn:
-      - Certificate
     Properties:
       DistributionConfig:
         HttpVersion: http2and3
-        #IsIPV6Enabled: true error: extraneous key [IsIPV6Enabled] is not permitted
         PriceClass: PriceClass_100
         Aliases:
-          - ${self:custom.subDomainApi}.bidi.boo
           - ${self:custom.subDomainApi}.playgrnd.media
-        # TODO <------
+          - ${self:custom.subDomainApi}.bidi.boo
+          - ${self:custom.subDomainApi}.dev.baybee.fr"
+          - ${self:custom.subDomainApi}.dev.baybee.be"
+          - ${self:custom.subDomainApi}.dev.baybee.ch"
+          - ${self:custom.subDomainApi}.dev.bidi.boo"
+          - ${self:custom.subDomainApi}.dev.bidiboo.com"
+          - ${self:custom.subDomainApi}.dev.bidiboo.co.uk"
+          - ${self:custom.subDomainApi}.dev.king.pet"
+          - ${self:custom.subDomainApi}.dev.kingpet.fr"
+          - ${self:custom.subDomainApi}.dev.kingpet.be"
+          - ${self:custom.subDomainApi}.dev.kingpet.ch"
+          - ${self:custom.subDomainApi}.dev.kingpet.com"
+          - ${self:custom.subDomainApi}.dev.kingpet.co.uk"
+          - ${self:custom.subDomainApi}.dev.littlemiss.beauty"
+          - ${self:custom.subDomainApi}.dev.littlemissbeauty.com"
+          - ${self:custom.subDomainApi}.dev.lullapanda.com"
+          - ${self:custom.subDomainApi}.dev.missprincesse.fr"
+          - ${self:custom.subDomainApi}.dev.missprincesse.be"
+          - ${self:custom.subDomainApi}.dev.missprincesse.ch"
+          - ${self:custom.subDomainApi}.dev.pageant.dog"
         ViewerCertificate:
           AcmCertificateArn: !Ref Certificate
           SslSupportMethod: sni-only
@@ -174,13 +44,7 @@ Resources:
             DomainName:
               !Join [
                 ".",
-                [
-                  !Ref HttpApi,
-                  execute-api,
-                  "us-east-1",
-                  !Ref AWS::Region,
-                  amazonaws.com,
-                ],
+                [!Ref HttpApi, execute-api, !Ref AWS::Region, amazonaws.com],
               ]
             CustomOriginConfig:
               HTTPSPort: 443

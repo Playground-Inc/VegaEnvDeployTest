@@ -1,0 +1,61 @@
+---
+Resources:
+  #
+  # Create Cloudfront Function to rewrite host header and detect webp/avif
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudfront-function.html
+  # https://gist.github.com/mikebroberts/09e8c8b4aaac6e26149c4622fd492414
+  #
+  CloudfrontFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      AutoPublish: true
+      FunctionCode: !Sub |
+        function handler(evt) {
+          var request = evt.request,
+            headers = request.headers,
+            //ua = headers["user-agent"] ? headers["user-agent"].value.toLowerCase() : "",
+            host = headers.host.value;
+
+          // Image only, no fm or png
+          if (
+            request.uri.substring(0, 4) === "/ph/" &&
+            headers.accept &&
+            !request.querystring.fm &&
+            request.uri.indexOf(".png") === -1
+          ) {
+            // Pas de format, ou png
+            var accept = headers.accept.value || "";
+
+            // Accept Avif
+            if (accept.indexOf("avif") !== -1)
+              request.querystring.fm = { value: "avif" };
+            // Accept Webp
+            else if (accept.indexOf("webp") !== -1)
+              request.querystring.fm = { value: "webp" };
+            // Jpg
+            else request.querystring.fm = { value: "jpg" };
+          }
+
+          // String normalize (not working)
+          // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-examples.html#lambda-examples-query-string-examples
+          // var sortedParams = {};
+          // var qs = [];
+          // Object.keys(request.querystring)
+          //   .sort()
+          //   .forEach((key) => {
+          //     var value = request.querystring[key].value;
+          //     if (value && value !== "false" && value !== "undefined")
+          //       sortedParams[key] = { value: value };
+          //     qs.push(key + "=" + value);
+          //   });
+          //request.querystring = sortedParams;
+
+          // Set host
+          headers["x-forwarded-host"] = { value: host };
+
+          return request;
+        }
+      FunctionConfig:
+        Comment: !Sub "${AWS::StackName} rewrite host and detect webp / avif"
+        Runtime: cloudfront-js-1.0
+      Name: !Sub "${AWS::StackName}-redirectFunction"
