@@ -5,6 +5,12 @@ frameworkVersion: "3"
 package:
   individually: true
 
+plugins:
+  - serverless-offline
+  - serverless-vpc-plugin
+  - serverless-plugin-utils
+  - serverless-esbuild
+
 provider:
   name: aws
   runtime: nodejs16.x
@@ -16,26 +22,34 @@ provider:
   profile: ${opt:aws-profile, "dev"} # ${file(./serverlessEnv.yml):AWS_PROFILE} # use --aws-profile dev / prod
   httpApi:
     name: ${self:service}-${sls:stage}
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "dynamodb:GetItem"
+            - "dynamodb:PutItem"
+          Resource:
+            - arn:aws:dynamodb:us-east-1:${aws:accountId}:table/*
   environment:
-    PWD_SALT: ${ssm:PWD_SALT}
+    BRANCH: ${sls:stage}
     REDIS_HOST:
       Fn::GetAtt: [ElasticCacheCluster, RedisEndpoint.Address]
     DYNAMO_SFX: ${self:custom.dynamoSfx}
-    BRANCH: ${sls:stage}
+    HOST_ASSETS: ${self:custom.hostAssets}
+    HOST_AUTH: ${self:custom.hostAuth}
+    PWD_SALT: ${ssm:PWD_SALT}
+    REGION: ${aws:region}
     SUB_DOMAIN: ${self:custom.subDomain}
     SUB_DOMAIN_API: ${self:custom.subDomainApi}
-
-plugins:
-  - serverless-dynamodb-local # sls dynamodb install à faire avant
-  - serverless-offline
-  - serverless-vpc-plugin
-  - serverless-plugin-utils
 
 custom:
   generalStage: ${ternary( ${sls:stage}, prod, prod, dev )} # prod | dev
   subDomain: ${ternary( ${sls:stage}, prod, xxx, ${sls:stage}.dev )} #TODO xxx -> www
   subDomainApi: ${ternary(${sls:stage}, prod, api, ${sls:stage}-api.dev )}
   subDomainPfx: ${ternary(${sls:stage}, prod, "", "dev." )}
+  hostAuth: ${ternary(${sls:stage}, prod, auth, ${sls:stage}-auth.dev )}.playgrnd.media
+  hostAssets: ${ternary(${sls:stage}, prod, assets, ${sls:stage}-assets.dev )}.playgrnd.media
   dynamoSfx: ${ternary(${sls:stage}, prod, "", _TEST${ternary(${file(./serverlessEnv.yml):CREATE_NEW_DB}, true, _${sls:stage}, "" )} )}
   elasticacheInstance: ${ternary( ${sls:stage}, prod, cache.m6g.large, cache.t2.micro )} # cache.m6g.large or cache.m6g.xlarge for prod
   vpcConfig:
@@ -45,23 +59,19 @@ custom:
     subnetGroups:
       - elasticache
     exportOutputs: true
-  dynamodb:
-    # If you only want to use DynamoDB Local in some stages, declare them here
-    stages:
-      - ${ternary( ${sls:stage}, prod, dev, ${sls:stage} )}
-    start:
-      docker: true
-      port: 8001
-      inMemory: true
-      migrate: false
-      seed: false
-      convertEmptyValues: true
+  esbuild:
+    bundle: true
+    minify: false
 
 functions:
   hello:
     handler: handler.hello
     events:
-      - httpApi: ANY /v7/hello
+      - httpApi: GET /v7/hello
+  db:
+    handler: handler.db
+    events:
+      - httpApi: GET /v7/db
 
 resources:
   - ${file(resources/Certificate.yml)}

@@ -13,27 +13,27 @@ Resources:
         HttpVersion: http2and3
         PriceClass: PriceClass_100
         Aliases:
+          - ${self:custom.hostAssets}
           - ${self:custom.subDomainApi}.playgrnd.media
+          - ${self:custom.subDomainApi}.baybee.fr
+          - ${self:custom.subDomainApi}.baybee.be
+          - ${self:custom.subDomainApi}.baybee.ch
           - ${self:custom.subDomainApi}.bidi.boo
-          - ${self:custom.subDomainApi}.dev.baybee.fr"
-          - ${self:custom.subDomainApi}.dev.baybee.be"
-          - ${self:custom.subDomainApi}.dev.baybee.ch"
-          - ${self:custom.subDomainApi}.dev.bidi.boo"
-          - ${self:custom.subDomainApi}.dev.bidiboo.com"
-          - ${self:custom.subDomainApi}.dev.bidiboo.co.uk"
-          - ${self:custom.subDomainApi}.dev.king.pet"
-          - ${self:custom.subDomainApi}.dev.kingpet.fr"
-          - ${self:custom.subDomainApi}.dev.kingpet.be"
-          - ${self:custom.subDomainApi}.dev.kingpet.ch"
-          - ${self:custom.subDomainApi}.dev.kingpet.com"
-          - ${self:custom.subDomainApi}.dev.kingpet.co.uk"
-          - ${self:custom.subDomainApi}.dev.littlemiss.beauty"
-          - ${self:custom.subDomainApi}.dev.littlemissbeauty.com"
-          - ${self:custom.subDomainApi}.dev.lullapanda.com"
-          - ${self:custom.subDomainApi}.dev.missprincesse.fr"
-          - ${self:custom.subDomainApi}.dev.missprincesse.be"
-          - ${self:custom.subDomainApi}.dev.missprincesse.ch"
-          - ${self:custom.subDomainApi}.dev.pageant.dog"
+          - ${self:custom.subDomainApi}.bidiboo.com
+          - ${self:custom.subDomainApi}.bidiboo.co.uk
+          - ${self:custom.subDomainApi}.king.pet
+          - ${self:custom.subDomainApi}.kingpet.fr
+          - ${self:custom.subDomainApi}.kingpet.be
+          # - ${self:custom.subDomainApi}.kingpet.ch # Waiting aws to increase certificate limits
+          # - ${self:custom.subDomainApi}.kingpet.com
+          # - ${self:custom.subDomainApi}.kingpet.co.uk
+          # - ${self:custom.subDomainApi}.littlemiss.beauty
+          # - ${self:custom.subDomainApi}.littlemissbeauty.com
+          # - ${self:custom.subDomainApi}.lullapanda.com
+          # - ${self:custom.subDomainApi}.missprincesse.fr
+          # - ${self:custom.subDomainApi}.missprincesse.be
+          # - ${self:custom.subDomainApi}.missprincesse.ch
+          # - ${self:custom.subDomainApi}.pageant.dog
         ViewerCertificate:
           AcmCertificateArn: !Ref Certificate
           SslSupportMethod: sni-only

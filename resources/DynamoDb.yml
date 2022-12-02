@@ -1,12 +1,37 @@
 ---
-Resources:
+Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html
+  #
+  # DynamoDB: AUTH_CODES
+  #
+  DynamoAuthCodesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: AUTH_CODES${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: attr
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: attr
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      TableClass: STANDARD
+      Tags:
+        - Key: TABLE
+          Value: AUTH_CODES
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+      TimeToLiveSpecification:
+        AttributeName: expires
+        Enabled: true
   #
   # DynamoDB: CHILDS
-  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html
+  #
   DynamoChildsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: __CHILDS${self:custom.dynamoSfx}
+      TableName: CHILDS${self:custom.dynamoSfx}
       AttributeDefinitions:
         - AttributeName: id_child
           AttributeType: S
@@ -23,15 +48,12 @@ Resources:
             - AttributeName: created
               KeyType: RANGE
           Projection:
-            ProjectionType: ALL #ALL | INCLUDE | KEYS_ONLY
+            ProjectionType: ALL
       KeySchema:
         - AttributeName: id_child
           KeyType: HASH
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
-      # ProvisionedThroughput:
-      #   ReadCapacityUnits: 0
-      #   WriteCapacityUnits: 0
       SSESpecification:
         SSEEnabled: true
       TableClass: STANDARD # or STANDARD_INFREQUENT_ACCESS
@@ -40,31 +62,3 @@ Resources:
           Value: CHILDS
         - Key: STAGE
           Value: ${self:custom.generalStage}
-  #
-  # DynamoDB: AUTH_CODES
-  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html
-  DynamoAuthCodesTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: __AUTH_CODES${self:custom.dynamoSfx}
-      AttributeDefinitions:
-        - AttributeName: attr
-          AttributeType: S
-      BillingMode: PAY_PER_REQUEST
-      KeySchema:
-        - AttributeName: attr
-          KeyType: HASH
-      # ProvisionedThroughput:
-      #   ReadCapacityUnits: 0
-      #   WriteCapacityUnits: 0
-      SSESpecification:
-        SSEEnabled: true
-      TableClass: STANDARD # or STANDARD_INFREQUENT_ACCESS
-      Tags:
-        - Key: TABLE
-          Value: AUTH_CODES
-        - Key: STAGE
-          Value: ${self:custom.generalStage}
-      TimeToLiveSpecification:
-        AttributeName: expires
-        Enabled: true

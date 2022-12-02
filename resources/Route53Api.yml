@@ -5,10 +5,20 @@ Resources:
   # Must be set AFTER cloudfront because it uses cloudfront ARN
   # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html
   #
+  PlaygrndAssetsRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}playgrnd.media.
+      Comment: ${sls:stage} API
+      Name: ${self:custom.hostAssets}
+      Type: A
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2
+        DNSName: !GetAtt CloudFrontDistribution.DomainName
   PlaygrndApiRoute53:
     Type: AWS::Route53::RecordSet
     Properties:
-      HostedZoneName: ${self:custom.subDomainPfx}bidi.boo.
+      HostedZoneName: ${self:custom.subDomainPfx}playgrnd.media.
       Comment: ${sls:stage} API
       Name: ${self:custom.subDomainApi}.playgrnd.media
       Type: A

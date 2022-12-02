@@ -22,7 +22,7 @@ Resources:
         - "*.dev.king.pet"
         - "*.dev.kingpet.fr"
         - "*.dev.kingpet.be"
-        # - "*.dev.kingpet.ch"
+        # - "*.dev.kingpet.ch" # Waiting aws to increase certificate limits
         # - "*.dev.kingpet.com"
         # - "*.dev.kingpet.co.uk"
         # - "*.dev.littlemiss.beauty"

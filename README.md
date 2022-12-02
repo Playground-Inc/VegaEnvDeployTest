@@ -6,32 +6,45 @@
 
 In order to deploy a new environment based on a stage, you need to :
 
-- Create a file named "STAGE.yml" at the root of the project with as content same like below:
+- Create a file named "serverlessEnv.yml" at the root of the project with as content same like below:
 
 ```
-STAGE: ben-new-feature
+BRANCH: ben-new-feat
+CREATE_NEW_DB: false
 ```
+
 Do not use "/" inside
 
 - Then run the following command:
 
 ```
-$ sls deploy
+$ sls deploy --aws-profile dev
 ```
 
-- Add the domains you want on Vercel:
+- Add the domain(s) you want on Vercel:
 
 ```
-dev-ben-new-feature.bidi.boo
+dev-ben-new-feat.dev.bidi.boo
 ```
-Assigned to the corresponding branch: ben/new-feature
+
+Assign on Vercel the corresponding branch: ben/new-feat
 
 After deployment, these urls will be available:
-- dev-ben-new-feature.bidi.boo (Vercel)
-- dev-ben-new-feature-api.bidi.boo (Cloudfront distribution)
-etc.
 
-TODO: Playground URL and all domains
-TODO: product stage --prod from non main branch
-TODO: automatize vercel domain creation?
+- dev-ben-new-feat.dev.bidi.boo (Vercel)
+- dev-ben-new-feat-api.dev.bidi.boo (Cloudfront distribution)
+  etc.
 
+And common Playground URLs:
+
+- ben-new-feat-auth.dev.playgrnd.media
+- ben-new-feat-assets.dev.playgrnd.media
+- ben-new-feat-api.dev.playgrnd.media
+
+For production deploiement (on main branch), use:
+
+```
+$ sls deploy --aws-profile prod
+```
+
+TODO: automatize vercel domains creation?

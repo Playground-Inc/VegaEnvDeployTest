@@ -1,0 +1,30 @@
+{
+  "name": "vegadeployment",
+  "version": "1.0.0",
+  "description": "## Usage",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Playground-Inc/VegaEnvDeployTest.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Playground-Inc/VegaEnvDeployTest/issues"
+  },
+  "homepage": "https://github.com/Playground-Inc/VegaEnvDeployTest#readme",
+  "devDependencies": {
+    "esbuild": "^0.15.16",
+    "serverless": "^3.25.1",
+    "serverless-esbuild": "^1.33.2",
+    "serverless-offline": "^11.6.0",
+    "serverless-plugin-utils": "^0.2.0",
+    "serverless-vpc-plugin": "^1.0.5"
+  },
+  "dependencies": {
+    "ioredis": "^5.2.4"
+  }
+}

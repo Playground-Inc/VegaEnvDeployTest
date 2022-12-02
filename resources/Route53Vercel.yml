@@ -4,6 +4,16 @@ Resources:
   # Create Vercel Route 53 (sub-domains) records
   # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html
   #
+  PlaygrndAuthVercelRoute53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: ${self:custom.subDomainPfx}playgrnd.media.
+      Comment: ${sls:stage}
+      Name: ${self:custom.hostAuth}
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - cname.vercel-dns.com
   BaybeeFrVercelRoute53:
     Type: AWS::Route53::RecordSet
     Properties:
