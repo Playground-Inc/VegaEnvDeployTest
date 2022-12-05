@@ -1,5 +1,40 @@
 ---
+# aws dynamodb describe-table --output yaml --table-name ACHIEVEMENTS
 Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html
+  #
+  # DynamoDB: ACHIEVEMENTS
+  #
+  DynamoAchievementsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ACHIEVEMENTS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: date_earned
+          AttributeType: N
+        - AttributeName: id_user
+          AttributeType: N
+        - AttributeName: key_ach
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: BY_USER
+          KeySchema:
+            - AttributeName: id_user
+              KeyType: HASH
+            - AttributeName: date_earned
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: key_ach
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: ACHIEVEMENTS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
   #
   # DynamoDB: AUTH_CODES
   #
@@ -16,7 +51,6 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
           KeyType: HASH
       SSESpecification:
         SSEEnabled: true
-      TableClass: STANDARD
       Tags:
         - Key: TABLE
           Value: AUTH_CODES
@@ -26,6 +60,40 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         AttributeName: expires
         Enabled: true
   #
+  # DynamoDB: BLOCKED_USERS
+  #
+  DynamoBlockedUsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: BLOCKED_USERS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: id_user
+          AttributeType: N
+        - AttributeName: id_user_blocked
+          AttributeType: N
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: is_blocking_me
+          KeySchema:
+            - AttributeName: id_user_blocked
+              KeyType: HASH
+            - AttributeName: id_user
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: id_user
+          KeyType: HASH
+        - AttributeName: id_user_blocked
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: BLOCKED_USERS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+  #
   # DynamoDB: CHILDS
   #
   DynamoChildsTable:
@@ -33,11 +101,17 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
     Properties:
       TableName: CHILDS${self:custom.dynamoSfx}
       AttributeDefinitions:
-        - AttributeName: id_child
-          AttributeType: S
         - AttributeName: app
           AttributeType: S
         - AttributeName: created
+          AttributeType: N
+        - AttributeName: id_child
+          AttributeType: S
+        - AttributeName: name_index
+          AttributeType: S
+        # - AttributeName: name_index_5
+        #   AttributeType: S
+        - AttributeName: updated
           AttributeType: N
       BillingMode: PAY_PER_REQUEST
       GlobalSecondaryIndexes:
@@ -49,6 +123,22 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
+        - IndexName: SEARCH
+          KeySchema:
+            - AttributeName: name_index
+              KeyType: HASH
+            - AttributeName: updated
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        # - IndexName: SEARCH_5
+        #   KeySchema:
+        #     - AttributeName: name_index_5
+        #       KeyType: HASH
+        #     - AttributeName: updated
+        #       KeyType: RANGE
+        #   Projection:
+        #     ProjectionType: ALL
       KeySchema:
         - AttributeName: id_child
           KeyType: HASH
@@ -56,9 +146,771 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         PointInTimeRecoveryEnabled: true
       SSESpecification:
         SSEEnabled: true
-      TableClass: STANDARD # or STANDARD_INFREQUENT_ACCESS
       Tags:
         - Key: TABLE
           Value: CHILDS
         - Key: STAGE
           Value: ${self:custom.generalStage}
+  #
+  # DynamoDB: COMMENTS
+  #
+  DynamoCommentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: COMMENTS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: date
+          AttributeType: N
+        - AttributeName: id_com
+          AttributeType: S
+        - AttributeName: place
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: BY_PLACE
+          KeySchema:
+            - AttributeName: place
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: id_com
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: COMMENTS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+      TimeToLiveSpecification:
+        AttributeName: expires
+        Enabled: true
+  #
+  # DynamoDB: CONTESTS
+  #
+  DynamoCoontestsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: CONTESTS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: app
+          AttributeType: S
+        - AttributeName: id_contest
+          AttributeType: S
+        - AttributeName: time_end
+          AttributeType: N
+        - AttributeName: time_promo
+          AttributeType: N
+        - AttributeName: time_start
+          AttributeType: N
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: TIME_PROMO
+          KeySchema:
+            - AttributeName: app
+              KeyType: HASH
+            - AttributeName: time_promo
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: TIME_START
+          KeySchema:
+            - AttributeName: app
+              KeyType: HASH
+            - AttributeName: time_start
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: TIME_END
+          KeySchema:
+            - AttributeName: app
+              KeyType: HASH
+            - AttributeName: time_end
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: id_contest
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: CONTESTS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+  #
+  # DynamoDB: COUPONS
+  #
+  DynamoCouponsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: COUPONS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: date
+          AttributeType: N
+        - AttributeName: id_user
+          AttributeType: N
+        - AttributeName: key_coupon
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: BY_USER
+          KeySchema:
+            - AttributeName: id_user
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: key_coupon
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: COUPONS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+      TimeToLiveSpecification:
+        AttributeName: expires
+        Enabled: true
+  #
+  # DynamoDB: FB_ID
+  #
+  DynamoFbIdTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: FB_ID${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: fb
+          AttributeType: N
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: pfx
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: fb-pfx-index
+          KeySchema:
+            - AttributeName: fb
+              KeyType: HASH
+            - AttributeName: pfx
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+        - AttributeName: pfx
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: FB_ID
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+  #
+  # DynamoDB: IDENTITY
+  #
+  DynamoIdentityTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: IDENTITY${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: hash
+          AttributeType: S
+        - AttributeName: hash_last_name_3
+          AttributeType: S
+        - AttributeName: id_user
+          AttributeType: N
+        - AttributeName: verified
+          AttributeType: N
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: HASH
+          KeySchema:
+            - AttributeName: hash
+              KeyType: HASH
+            - AttributeName: verified
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: HASH_LAST_NAME_3
+          KeySchema:
+            - AttributeName: hash_last_name_3
+              KeyType: HASH
+            - AttributeName: verified
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: id_user
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: IDENTITY
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+      TimeToLiveSpecification:
+        AttributeName: expires
+        Enabled: true
+  #
+  # DynamoDB: LISTS
+  #
+  DynamoListTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: LISTS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: DATE
+          AttributeType: N
+        - AttributeName: id
+          AttributeType: N
+        - AttributeName: key
+          AttributeType: S
+        - AttributeName: type
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: DATE
+          KeySchema:
+            - AttributeName: type
+              KeyType: HASH
+            - AttributeName: DATE
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: KEY
+          KeySchema:
+            - AttributeName: type
+              KeyType: HASH
+            - AttributeName: key
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: type
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: LISTS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+  #
+  # DynamoDB: NOTIFICATIONS
+  #
+  DynamoNotificationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: NOTIFICATIONS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: date
+          AttributeType: N
+        - AttributeName: id_user
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id_user
+          KeyType: HASH
+        - AttributeName: date
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: NOTIFICATIONS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+      TimeToLiveSpecification:
+        AttributeName: expires
+        Enabled: true
+  #
+  # DynamoDB: PARTICIPANTS
+  #
+  DynamoParticipantsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: PARTICIPANTS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        # - AttributeName: date
+        #   AttributeType: N
+        # - AttributeName: id_child
+        #   AttributeType: S
+        - AttributeName: id_contest
+          AttributeType: S
+        - AttributeName: id_sub_contest
+          AttributeType: S
+        - AttributeName: key_part
+          AttributeType: S
+        - AttributeName: rank
+          AttributeType: S
+        - AttributeName: sub_rank
+          AttributeType: S
+        # - AttributeName: votes
+        #   AttributeType: N
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        # Besoin de cet index ou utiliser ids_contests du child profile?
+        # Si on utilise cet index: x2 sur le prix d'écriture des votes
+        # - IndexName: BY_CHILD
+        #   KeySchema:
+        #     - AttributeName: id_child
+        #       KeyType: HASH
+        #     - AttributeName: date
+        #       KeyType: RANGE
+        #   Projection:
+        #     ProjectionType: ALL
+        # Utilisé pour calculer le rank final d'un part
+        - IndexName: BY_CONTEST
+          KeySchema:
+            - AttributeName: id_contest
+              KeyType: HASH
+            - AttributeName: key_part
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        # Use for query participants AFTER contest ends
+        - IndexName: BY_RANK
+          KeySchema:
+            - AttributeName: id_contest
+              KeyType: HASH
+            - AttributeName: rank
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        # Use for query participants AFTER contest ends
+        - IndexName: BY_SUB_RANK
+          KeySchema:
+            - AttributeName: id_sub_contest
+              KeyType: HASH
+            - AttributeName: sub_rank
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: key_part
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: PARTICIPANTS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+      TimeToLiveSpecification:
+        AttributeName: expires
+        Enabled: true
+  #
+  # DynamoDB: PAYMENTS
+  #
+  DynamoPaymentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: PAYMENTS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: date
+          AttributeType: N
+        - AttributeName: id_user
+          AttributeType: N
+        - AttributeName: id_user_owner
+          AttributeType: N
+        - AttributeName: key_payment
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: BY_OWNER
+          KeySchema:
+            - AttributeName: id_user_owner
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: BY_USER
+          KeySchema:
+            - AttributeName: id_user
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: key_payment
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: PAYMENTS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+  #
+  # DynamoDB: PAYOUTS
+  #
+  DynamoPayoutsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: PAYOUTS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: date
+          AttributeType: N
+        - AttributeName: id_user
+          AttributeType: N
+        - AttributeName: key_payout
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: BY_STATUS
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: BY_USER
+          KeySchema:
+            - AttributeName: id_user
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: key_payout
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: PAYOUTS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+  #
+  # DynamoDB: PHOTOS
+  #
+  DynamoPhotosTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: PHOTOS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: date_added
+          AttributeType: N
+        - AttributeName: key_photo
+          AttributeType: S
+        - AttributeName: place
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: BY_PLACE
+          KeySchema:
+            - AttributeName: place
+              KeyType: HASH
+            - AttributeName: date_added
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      KeySchema:
+        - AttributeName: key_photo
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: PHOTOS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+  #
+  # DynamoDB: PLACES
+  #
+  DynamoPlacesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: PLACES${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: key_place
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: key_place
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: PLACES
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+      # ImportSourceSpecification:
+      # InputCompressionType: "NONE"
+      # InputFormat: "CSV"
+      # S3BucketSource:
+      #   S3Bucket: "myS3Bucket"
+      #   S3KeyPrefix: "myS3Prefix/foo.csv"
+  #
+  # DynamoDB: SESSIONS
+  #
+  DynamoSessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: SESSIONS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: created_at
+          AttributeType: N
+        - AttributeName: id_session
+          AttributeType: S
+        - AttributeName: id_user
+          AttributeType: N
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: BY_USER
+          KeySchema:
+            - AttributeName: id_user
+              KeyType: HASH
+            - AttributeName: created_at
+              KeyType: RANGE
+          Projection:
+            ProjectionType: KEYS_ONLY
+      KeySchema:
+        - AttributeName: id_session
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: SESSIONS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+      TimeToLiveSpecification:
+        AttributeName: expires
+        Enabled: true
+  #
+  # DynamoDB: SETTINGS
+  #
+  DynamoSettingsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: SETTINGS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: setting
+          AttributeType: S
+        - AttributeName: type
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: setting
+          KeyType: HASH
+        - AttributeName: type
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: SETTINGS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+      TimeToLiveSpecification:
+        AttributeName: expires
+        Enabled: true
+  #
+  # DynamoDB: STATS
+  #
+  DynamoStatsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: STATS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: sort
+          AttributeType: S
+        - AttributeName: stat
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: stat
+          KeyType: HASH
+        - AttributeName: sort
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: STATS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+  #
+  # DynamoDB: TAGS
+  #
+  DynamoTagsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: TAGS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: date
+          AttributeType: N
+        - AttributeName: tag
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: tag
+          KeyType: HASH
+        - AttributeName: date
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: TAGS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+  #
+  # DynamoDB: TESTIMONIALS
+  #
+  DynamoTestimonialsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: TESTIMONIALS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: app
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: N
+        - AttributeName: id_contest
+          AttributeType: S
+        - AttributeName: key_testimonial
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: BY_CONTEST
+          KeySchema:
+            - AttributeName: id_contest
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: KEYS_ONLY
+        - IndexName: BY_APP
+          KeySchema:
+            - AttributeName: app
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: KEYS_ONLY
+      KeySchema:
+        - AttributeName: key_testimonial
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: TESTIMONIALS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+  #
+  # DynamoDB: UNIQ
+  #
+  DynamoUniqTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: UNIQ${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: key
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: key
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: UNIQ
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+  #
+  # DynamoDB: USERS
+  #
+  DynamoUsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: USERS${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: id_user
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id_user
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: USERS
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+  #
+  # DynamoDB: VOTES
+  #
+  DynamoVotesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: VOTES${self:custom.dynamoSfx}
+      AttributeDefinitions:
+        - AttributeName: date
+          AttributeType: N
+        - AttributeName: id_user
+          AttributeType: N
+        - AttributeName: ip
+          AttributeType: S
+        - AttributeName: key_part
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: BY_PART
+          KeySchema:
+            - AttributeName: key_part
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: KEYS_ONLY
+        - IndexName: BY_IP
+          KeySchema:
+            - AttributeName: ip
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            NonKeyAttributes:
+              - key_part
+              - id_user
+            ProjectionType: INCLUDE
+      KeySchema:
+        - AttributeName: id_user
+          KeyType: HASH
+        - AttributeName: date
+          KeyType: RANGE
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: TABLE
+          Value: VOTES
+        - Key: STAGE
+          Value: ${self:custom.generalStage}
+      TimeToLiveSpecification:
+        AttributeName: expires
+        Enabled: true

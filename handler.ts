@@ -1,9 +1,9 @@
 "use strict";
 
-const AWS = require("aws-sdk");
-const Redis = require("ioredis");
+import { DynamoDB } from "aws-sdk";
+import Redis from "ioredis";
 
-module.exports.hello = async (event) => {
+exports.hello = async (event) => {
   return {
     statusCode: 200,
     body: JSON.stringify(
@@ -26,8 +26,8 @@ module.exports.hello = async (event) => {
   };
 };
 
-module.exports.db = async (event) => {
-  const dynClient = new AWS.DynamoDB.DocumentClient({
+exports.db = async () => {
+  const dynClient = new DynamoDB.DocumentClient({
     region: process.env.REGION,
   });
 
@@ -68,7 +68,7 @@ module.exports.db = async (event) => {
   // Get from redis
   //start microsecond timer for redis
   const hrstart = process.hrtime();
-  const itemRedis = JSON.parse(await redisClient.get("child"));
+  const itemRedis = JSON.parse((await redisClient.get("child")) as string);
   const itemRedisTime = process.hrtime(hrstart);
 
   return {
