@@ -172,6 +172,8 @@ class VegaPlugin {
                 log.success(conf("subDomain", stage) + "." + domain);
               }
 
+            log(" ");
+
             return {
               value: routes,
             };
@@ -305,7 +307,8 @@ class VegaPlugin {
 
           const valueFromStage = conf(address, stage, region);
 
-          log(address, valueFromStage);
+          // Debug
+          // log(address, valueFromStage);
 
           // Resolver is expected to return an object with the value in the `value` property:
           return {
