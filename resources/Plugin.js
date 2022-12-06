@@ -8,12 +8,12 @@ const pascalCase = (str) => {
 
 const conf = (attr, stage, region) => {
   const attrs = {
-    s3Bucket: {
+    s3DeploymentBucket: {
       prod: "vega-deployment-" + region + "-prod",
       dev: "vega-deployment-" + region + "-dev",
       default: "vega-deployment-" + region + "-" + stage + "-dev",
     },
-    s3DeploymentBucket: {
+    s3Bucket: {
       prod: "vega-" + region + "-prod",
       preprod: "vega-" + region + "-prod",
       default: "vega-" + region + "-dev",
@@ -119,7 +119,7 @@ class VegaPlugin {
 
             log(" ");
             log.warning(
-              "Add these domains on Vercel with " + env.BRANCH + " as branch:"
+              'Add these domains on Vercel with "' + env.BRANCH + '" as branch:'
             );
 
             // Playground Auth Vercel
@@ -298,8 +298,8 @@ class VegaPlugin {
               value: env.CREATE_CACHE_CLUSTER
                 ? {
                     "Fn::GetAtt": [
-                      "ElasticacheCluster",
-                      "RedisEndpointAddress",
+                      "ElasticCacheCluster",
+                      "RedisEndpoint.Address",
                     ],
                   }
                 : false,

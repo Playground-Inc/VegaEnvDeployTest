@@ -62,10 +62,10 @@ functions:
     handler: handler.hello
     events:
       - httpApi: GET /v7/hello
-  # db:
-  #   handler: handler.db
-  #   events:
-  #     - httpApi: GET /v7/db
+  db:
+    handler: handler.db
+    events:
+      - httpApi: GET /v7/db
   # export:
   #   handler: export.db
   #   timeout: 900
