@@ -1,0 +1,9 @@
+Apps:
+  - id: BUS
+    theme: babies
+    domains:
+      bidi.boo: en-US
+  - id: KUS
+    theme: pets
+    domains:
+      king.pet: en-US

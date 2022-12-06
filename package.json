@@ -4,7 +4,8 @@
   "description": "## Usage",
   "main": "handler.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "init": "chmod +x ./init.sh && ./init.sh"
   },
   "repository": {
     "type": "git",
@@ -21,7 +22,6 @@
     "serverless": "^3.25.1",
     "serverless-esbuild": "^1.33.2",
     "serverless-offline": "^11.6.0",
-    "serverless-plugin-utils": "^0.2.0",
     "serverless-vpc-plugin": "^1.0.5"
   },
   "dependencies": {

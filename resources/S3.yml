@@ -1,0 +1,66 @@
+---
+Resources:
+  #
+  # S3 Buckets
+  #
+  # List buckets: aws s3api list-buckets --output yaml
+  # CLI: https://docs.aws.amazon.com/cli/latest/reference/s3api/list-buckets.html
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html#cfn-s3-bucket-accelerateconfiguration
+  #
+  VegaBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccelerateConfiguration:
+        AccelerationStatus: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      BucketName: vega-us-east-1-dev
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - HEAD
+              - GET
+              - POST
+            AllowedOrigins: ${vega:s3AllowedOrigins}
+            ExposedHeaders:
+              - Etag
+            MaxAge: 3600
+      LifecycleConfiguration:
+        Rules:
+          - Id: Erase tmp files
+            ExpirationInDays: 60
+            Prefix: ph/tmp
+            Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: STAGE
+          Value: ${vega:prodPreprodOrDev}
+  # VegaBucketPolicy:
+  #   Type: AWS::S3::BucketPolicy
+  #   Properties:
+  #     Bucket: !Ref VegaBucket
+  #     PolicyDocument:
+  #       Version: "2012-10-17"
+  #       Statement:
+  #         - Action:
+  #             - "s3:GetObject"
+  #           Effect: Allow
+  #           Resource: !Join
+  #             - ""
+  #             - - "arn:aws:s3:::"
+  #               - !Ref VegaBucket
+  #               - /*
+  #           Principal:
+  #             AWS: !Join
+  #               - " "
+  #               - - "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity"
+  #                 - "EUKEUM4WGP4RS"
+  #         #TODO: rekognition?

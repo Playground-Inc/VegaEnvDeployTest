@@ -12,7 +12,7 @@ exports.hello = async (event) => {
         X_FORWARDED_HOST: event.headers["x-forwarded-host"],
         DYNAMO_SFX: process.env.DYNAMO_SFX,
         BRANCH: process.env.BRANCH,
-        REDIS_HOST: process.env.REDIS_HOST,
+        REDIS_CLUSTER_ENDPOINT: process.env.REDIS_CLUSTER_ENDPOINT,
         REGION: process.env.REGION,
         PWD_SALT: process.env.PWD_SALT,
         SUB_DOMAIN: process.env.SUB_DOMAIN,
@@ -40,7 +40,7 @@ exports.db = async () => {
 
   const redisClient = new Redis({
     port: 6379,
-    host: process.env.REDIS_HOST,
+    host: process.env.REDIS_CLUSTER_ENDPOINT,
   });
 
   // Create child table

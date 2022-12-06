@@ -10,7 +10,7 @@ Resources:
       #TransitEncryptionEnabled: true #Encryption feature is not supported for engine REDIS
       AutoMinorVersionUpgrade: true
       Engine: redis
-      CacheNodeType: ${self:custom.elasticacheInstance}
+      CacheNodeType: ${vega:elasticacheInstance}
       NumCacheNodes: 1
       VpcSecurityGroupIds:
         - !GetAtt [AppSecurityGroup, GroupId]

@@ -6,9 +6,9 @@ package:
   individually: true
 
 plugins:
+  - ./resources/Plugin
   - serverless-offline
   - serverless-vpc-plugin
-  - serverless-plugin-utils
   - serverless-esbuild
 
 provider:
@@ -16,10 +16,10 @@ provider:
   runtime: nodejs16.x
   architecture: arm64
   timeout: 10
-  stage: ${file(./serverlessEnv.yml):BRANCH}
+  stage: ${file(./.serverlessEnv.yml):STAGE}
   deploymentBucket:
-    name: vega-deployment-${aws:region}-${ternary( ${sls:stage}, prod, prod, dev )}
-  profile: ${opt:aws-profile, "dev"} # ${file(./serverlessEnv.yml):AWS_PROFILE} # use --aws-profile dev / prod
+    name: ${vega:s3DeploymentBucket}
+  profile: ${file(./.serverlessEnv.yml):AWS_PROFILE}
   httpApi:
     name: ${self:service}-${sls:stage}
   iam:
@@ -29,33 +29,27 @@ provider:
           Action:
             - "dynamodb:GetItem"
             - "dynamodb:PutItem"
+            - "dynamodb:Query"
+            - "dynamodb:Scan"
           Resource:
             - arn:aws:dynamodb:us-east-1:${aws:accountId}:table/*
   environment:
-    BRANCH: ${sls:stage}
-    REDIS_HOST:
-      Fn::GetAtt: [ElasticCacheCluster, RedisEndpoint.Address]
-    DYNAMO_SFX: ${self:custom.dynamoSfx}
-    HOST_ASSETS: ${self:custom.hostAssets}
-    HOST_AUTH: ${self:custom.hostAuth}
+    STAGE: ${sls:stage}
+    BRANCH: ${file(./.serverlessEnv.yml):BRANCH}
+    REDIS_CLUSTER_ENDPOINT: ${vega:redisClusterEndpoint}
+    DYNAMO_SFX: ${vega:dynamoSfx}
+    BUCKET: ${vega:s3Bucket}
+    HOST_ASSETS: ${vega:hostAssets}
+    HOST_AUTH: ${vega:hostAuth}
     PWD_SALT: ${ssm:PWD_SALT}
     REGION: ${aws:region}
-    SUB_DOMAIN: ${self:custom.subDomain}
-    SUB_DOMAIN_API: ${self:custom.subDomainApi}
+    SUB_DOMAIN: ${vega:subDomain}
+    SUB_DOMAIN_API: ${vega:subDomainApi}
 
 custom:
-  generalStage: ${ternary( ${sls:stage}, prod, prod, dev )} # prod | dev
-  subDomain: ${ternary( ${sls:stage}, prod, xxx, ${sls:stage}.dev )} #TODO xxx -> www
-  subDomainApi: ${ternary(${sls:stage}, prod, api, ${sls:stage}-api.dev )}
-  subDomainPfx: ${ternary(${sls:stage}, prod, "", "dev." )}
-  hostAuth: ${ternary(${sls:stage}, prod, auth, ${sls:stage}-auth.dev )}.playgrnd.media
-  hostAssets: ${ternary(${sls:stage}, prod, assets, ${sls:stage}-assets.dev )}.playgrnd.media
-  dynamoSfx: ${ternary(${sls:stage}, prod, "", _TEST${ternary(${file(./serverlessEnv.yml):CREATE_NEW_DB}, true, _${sls:stage}, "" )} )}
-  elasticacheInstance: ${ternary( ${sls:stage}, prod, cache.m6g.large, cache.t2.micro )} # cache.m6g.large or cache.m6g.xlarge for prod
+  env: ${file(./.serverlessEnv.yml)}
+  apps: ${file(./resources/Apps.yml):Apps}
   vpcConfig:
-    # if createNatGateway is a boolean "true", a NAT Gateway and EIP will be provisioned in each zone
-    # if createNatGateway is a number, that number of NAT Gateways will be provisioned
-    createNatGateway: ${ternary( ${sls:stage}, prod, 3, 1 )}
     subnetGroups:
       - elasticache
     exportOutputs: true
@@ -68,18 +62,23 @@ functions:
     handler: handler.hello
     events:
       - httpApi: GET /v7/hello
-  db:
-    handler: handler.db
-    events:
-      - httpApi: GET /v7/db
+  # db:
+  #   handler: handler.db
+  #   events:
+  #     - httpApi: GET /v7/db
+  # export:
+  #   handler: export.db
+  #   timeout: 900
+  #   events:
+  #     - httpApi: GET /v7/export
 
 resources:
+  - ${file(resources/${vega:s3}.yml)}
+  - ${file(resources/${vega:dynamoDb}.yml)}
   - ${file(resources/Certificate.yml)}
   - ${file(resources/CloudfrontFunctions.yml)}
   - ${file(resources/CloudfrontCachePolicies.yml)}
   - ${file(resources/CloudfrontDistribution.yml)}
-  - ${file(resources/Route53Vercel.yml)}
-  - ${file(resources/Route53Api.yml)}
-  - ${file(resources/DynamoDb.yml)}
-  - ${file(resources/Vpc.yml)}
-  - ${file(resources/Elasticache.yml)}
+  - ${file(resources/Route53.yml)}
+  - ${file(resources/${vega:vpc}.yml)}
+  - ${file(resources/${vega:elasticache}.yml)}

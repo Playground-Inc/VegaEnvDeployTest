@@ -1,0 +1,8 @@
+---
+Resources:
+  #
+  # Create Api & Vercel Route 53 (sub-domains) records
+  # Must be set AFTER cloudfront because it uses cloudfront ARN
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html
+  #
+  ${vega:route53}

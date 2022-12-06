@@ -10,7 +10,7 @@ In order to deploy a new environment based on a stage, you need to :
 
 ```
 BRANCH: ben-new-feat
-CREATE_NEW_DB: false
+CREATE_DB: false
 ```
 
 Do not use "/" inside

@@ -1,5 +1,4 @@
 ---
-# aws dynamodb describe-table --output yaml --table-name ACHIEVEMENTS
 Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html
   #
   # DynamoDB: ACHIEVEMENTS
@@ -7,7 +6,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
   DynamoAchievementsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: ACHIEVEMENTS${self:custom.dynamoSfx}
+      TableName: ACHIEVEMENTS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: date_earned
           AttributeType: N
@@ -34,14 +33,14 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: ACHIEVEMENTS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
   #
   # DynamoDB: AUTH_CODES
   #
   DynamoAuthCodesTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: AUTH_CODES${self:custom.dynamoSfx}
+      TableName: AUTH_CODES${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: attr
           AttributeType: S
@@ -55,7 +54,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: AUTH_CODES
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
       TimeToLiveSpecification:
         AttributeName: expires
         Enabled: true
@@ -65,7 +64,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
   DynamoBlockedUsersTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: BLOCKED_USERS${self:custom.dynamoSfx}
+      TableName: BLOCKED_USERS_V2${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: id_user
           AttributeType: N
@@ -90,16 +89,16 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         SSEEnabled: true
       Tags:
         - Key: TABLE
-          Value: BLOCKED_USERS
+          Value: BLOCKED_USERS_V2
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
   #
   # DynamoDB: CHILDS
   #
   DynamoChildsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: CHILDS${self:custom.dynamoSfx}
+      TableName: CHILDS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: app
           AttributeType: S
@@ -109,8 +108,8 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
           AttributeType: S
         - AttributeName: name_index
           AttributeType: S
-        # - AttributeName: name_index_5
-        #   AttributeType: S
+        - AttributeName: name_index_5
+          AttributeType: S
         - AttributeName: updated
           AttributeType: N
       BillingMode: PAY_PER_REQUEST
@@ -131,14 +130,14 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-        # - IndexName: SEARCH_5
-        #   KeySchema:
-        #     - AttributeName: name_index_5
-        #       KeyType: HASH
-        #     - AttributeName: updated
-        #       KeyType: RANGE
-        #   Projection:
-        #     ProjectionType: ALL
+        - IndexName: SEARCH_5
+          KeySchema:
+            - AttributeName: name_index_5
+              KeyType: HASH
+            - AttributeName: updated
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
       KeySchema:
         - AttributeName: id_child
           KeyType: HASH
@@ -150,14 +149,14 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: CHILDS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
   #
   # DynamoDB: COMMENTS
   #
   DynamoCommentsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: COMMENTS${self:custom.dynamoSfx}
+      TableName: COMMENTS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: date
           AttributeType: N
@@ -184,7 +183,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: COMMENTS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
       TimeToLiveSpecification:
         AttributeName: expires
         Enabled: true
@@ -194,7 +193,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
   DynamoCoontestsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: CONTESTS${self:custom.dynamoSfx}
+      TableName: CONTESTS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: app
           AttributeType: S
@@ -241,14 +240,14 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: CONTESTS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
   #
   # DynamoDB: COUPONS
   #
   DynamoCouponsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: COUPONS${self:custom.dynamoSfx}
+      TableName: COUPONS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: date
           AttributeType: N
@@ -275,7 +274,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: COUPONS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
       TimeToLiveSpecification:
         AttributeName: expires
         Enabled: true
@@ -285,7 +284,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
   DynamoFbIdTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: FB_ID${self:custom.dynamoSfx}
+      TableName: FB_ID_V2${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: fb
           AttributeType: N
@@ -312,16 +311,16 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         SSEEnabled: true
       Tags:
         - Key: TABLE
-          Value: FB_ID
+          Value: FB_ID_V2
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
   #
   # DynamoDB: IDENTITY
   #
   DynamoIdentityTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: IDENTITY${self:custom.dynamoSfx}
+      TableName: IDENTITY_V2${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: hash
           AttributeType: S
@@ -356,9 +355,9 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         SSEEnabled: true
       Tags:
         - Key: TABLE
-          Value: IDENTITY
+          Value: IDENTITY_V2
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
       TimeToLiveSpecification:
         AttributeName: expires
         Enabled: true
@@ -368,7 +367,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
   DynamoListTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: LISTS${self:custom.dynamoSfx}
+      TableName: LISTS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: DATE
           AttributeType: N
@@ -407,14 +406,14 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: LISTS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
   #
   # DynamoDB: NOTIFICATIONS
   #
   DynamoNotificationsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: NOTIFICATIONS${self:custom.dynamoSfx}
+      TableName: NOTIFICATIONS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: date
           AttributeType: N
@@ -432,7 +431,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: NOTIFICATIONS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
       TimeToLiveSpecification:
         AttributeName: expires
         Enabled: true
@@ -442,7 +441,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
   DynamoParticipantsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: PARTICIPANTS${self:custom.dynamoSfx}
+      TableName: PARTICIPANTS${vega:dynamoSfx}
       AttributeDefinitions:
         # - AttributeName: date
         #   AttributeType: N
@@ -508,7 +507,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: PARTICIPANTS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
       TimeToLiveSpecification:
         AttributeName: expires
         Enabled: true
@@ -518,7 +517,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
   DynamoPaymentsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: PAYMENTS${self:custom.dynamoSfx}
+      TableName: PAYMENTS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: date
           AttributeType: N
@@ -555,14 +554,14 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: PAYMENTS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
   #
   # DynamoDB: PAYOUTS
   #
   DynamoPayoutsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: PAYOUTS${self:custom.dynamoSfx}
+      TableName: PAYOUTS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: date
           AttributeType: N
@@ -599,14 +598,14 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: PAYOUTS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
   #
   # DynamoDB: PHOTOS
   #
   DynamoPhotosTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: PHOTOS${self:custom.dynamoSfx}
+      TableName: PHOTOS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: date_added
           AttributeType: N
@@ -633,14 +632,14 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: PHOTOS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
   #
   # DynamoDB: PLACES
   #
   DynamoPlacesTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: PLACES${self:custom.dynamoSfx}
+      TableName: PLACES${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: key_place
           AttributeType: S
@@ -654,7 +653,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: PLACES
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
       # ImportSourceSpecification:
       # InputCompressionType: "NONE"
       # InputFormat: "CSV"
@@ -667,7 +666,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
   DynamoSessionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: SESSIONS${self:custom.dynamoSfx}
+      TableName: SESSIONS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: created_at
           AttributeType: N
@@ -694,7 +693,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: SESSIONS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
       TimeToLiveSpecification:
         AttributeName: expires
         Enabled: true
@@ -704,7 +703,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
   DynamoSettingsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: SETTINGS${self:custom.dynamoSfx}
+      TableName: SETTINGS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: setting
           AttributeType: S
@@ -722,7 +721,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: SETTINGS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
       TimeToLiveSpecification:
         AttributeName: expires
         Enabled: true
@@ -732,7 +731,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
   DynamoStatsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: STATS${self:custom.dynamoSfx}
+      TableName: STATS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: sort
           AttributeType: S
@@ -750,14 +749,14 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: STATS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
   #
   # DynamoDB: TAGS
   #
   DynamoTagsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: TAGS${self:custom.dynamoSfx}
+      TableName: TAGS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: date
           AttributeType: N
@@ -775,14 +774,14 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: TAGS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
   #
   # DynamoDB: TESTIMONIALS
   #
   DynamoTestimonialsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: TESTIMONIALS${self:custom.dynamoSfx}
+      TableName: TESTIMONIALS${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: app
           AttributeType: S
@@ -819,14 +818,14 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: TESTIMONIALS
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
   #
   # DynamoDB: UNIQ
   #
   DynamoUniqTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: UNIQ${self:custom.dynamoSfx}
+      TableName: UNIQ${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: key
           AttributeType: S
@@ -840,14 +839,14 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: UNIQ
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
   #
   # DynamoDB: USERS
   #
   DynamoUsersTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: USERS${self:custom.dynamoSfx}
+      TableName: USERS_V2${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: id_user
           AttributeType: S
@@ -859,16 +858,16 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         SSEEnabled: true
       Tags:
         - Key: TABLE
-          Value: USERS
+          Value: USERS_V2
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
   #
   # DynamoDB: VOTES
   #
   DynamoVotesTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: VOTES${self:custom.dynamoSfx}
+      TableName: VOTES${vega:dynamoSfx}
       AttributeDefinitions:
         - AttributeName: date
           AttributeType: N
@@ -910,7 +909,7 @@ Resources: # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-
         - Key: TABLE
           Value: VOTES
         - Key: STAGE
-          Value: ${self:custom.generalStage}
+          Value: ${vega:prodPreprodOrDev}
       TimeToLiveSpecification:
         AttributeName: expires
         Enabled: true

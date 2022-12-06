@@ -1,2 +1,0 @@
-BRANCH: ben-new-feat # git branch, no slash
-CREATE_NEW_DB: false # dev only, create DBs just for this branch

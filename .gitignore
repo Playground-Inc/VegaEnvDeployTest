@@ -3,4 +3,3 @@
 .serverless*
 .dynamodb*
 node_modules*
-serverlessEnv.yml

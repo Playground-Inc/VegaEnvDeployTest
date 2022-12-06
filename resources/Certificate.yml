@@ -10,26 +10,6 @@ Resources:
   Certificate:
     Type: AWS::CertificateManager::Certificate
     Properties:
-      DomainName: "*.dev.playgrnd.media"
-      SubjectAlternativeNames:
-        - "*.dev.playgrnd.media"
-        - "*.dev.baybee.fr"
-        - "*.dev.baybee.be"
-        - "*.dev.baybee.ch"
-        - "*.dev.bidi.boo"
-        - "*.dev.bidiboo.com"
-        - "*.dev.bidiboo.co.uk"
-        - "*.dev.king.pet"
-        - "*.dev.kingpet.fr"
-        - "*.dev.kingpet.be"
-        # - "*.dev.kingpet.ch" # Waiting aws to increase certificate limits
-        # - "*.dev.kingpet.com"
-        # - "*.dev.kingpet.co.uk"
-        # - "*.dev.littlemiss.beauty"
-        # - "*.dev.littlemissbeauty.com"
-        # - "*.dev.lullapanda.com"
-        # - "*.dev.missprincesse.fr"
-        # - "*.dev.missprincesse.be"
-        # - "*.dev.missprincesse.ch"
-        # - "*.dev.pageant.dog"
+      DomainName: ${vega:certificateDefault}
+      SubjectAlternativeNames: ${vega:certificateDomains}
       ValidationMethod: DNS
