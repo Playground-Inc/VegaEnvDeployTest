@@ -25,7 +25,7 @@ Resources:
               - HEAD
               - GET
               - POST
-            AllowedOrigins: ${vega:s3AllowedOrigins}
+            AllowedOrigins: ${vega:allowedOrigins}
             ExposedHeaders:
               - Etag
             MaxAge: 3600
@@ -43,6 +43,7 @@ Resources:
       Tags:
         - Key: STAGE
           Value: ${vega:prodPreprodOrDev}
+  # Not use for now as cloudfront is not accessing directly to s3
   # VegaBucketPolicy:
   #   Type: AWS::S3::BucketPolicy
   #   Properties:
@@ -59,8 +60,13 @@ Resources:
   #               - !Ref VegaBucket
   #               - /*
   #           Principal:
-  #             AWS: !Join
-  #               - " "
-  #               - - "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity"
-  #                 - "EUKEUM4WGP4RS"
+  #             Service: cloudfront.amazonaws.com
+  #           Condition:
+  #             StringEquals:
+  #               AWS:SourceArn: !Join
+  #                 - " "
+  #                 - - "arn:aws:cloudfront::"
+  #                   - !Ref AWS::AccountId
+  #                   - :distribution/
+  #                   - !Ref CloudFrontDistribution
   #         #TODO: rekognition?

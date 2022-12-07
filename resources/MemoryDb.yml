@@ -1,0 +1,28 @@
+---
+Resources:
+  #
+  # MemoryDb (Redis)
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-memorydb-cluster.html
+  MemoryDbCluster:
+    Type: AWS::MemoryDB::Cluster
+    Properties:
+      ACLName: open-access
+      AutoMinorVersionUpgrade: true
+      ClusterName: ${vega:memoryDbName}
+      DataTiering: false
+      Description: Vega ${vega:prodPreprodOrDev}
+      NodeType: ${vega:memoryDbNodesType}
+      NumReplicasPerShard: ${vega:memoryDbReplica}
+      NumShards: 1
+      SecurityGroupIds:
+        - !GetAtt [AppSecurityGroup, GroupId]
+      SnapshotRetentionLimit: 3
+      SubnetGroupName: !Ref MemoryDbSubnetGroup
+      Tags:
+        - Key: STAGE
+          Value: ${vega:prodPreprodOrDev}
+      TLSEnabled: true
+# Outputs:
+#   SnsTopicName:
+#       Value:
+#         Ref: snsTopicResource

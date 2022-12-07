@@ -60,11 +60,12 @@ Resources:
           CachedMethods:
             - GET
             - HEAD
-          CachePolicyId: !GetAtt CachePolicyAuthStripeHostQs.Id
+          CachePolicyId: !Ref CachePolicyAuthStripeHostQs
           Compress: true
           FunctionAssociations:
             - FunctionARN: !GetAtt CloudfrontFunction.FunctionARN
               EventType: "viewer-request"
+          ResponseHeadersPolicyId: !Ref CacheResponseHeadersPolicy
           TargetOriginId: Api Gateway
           ViewerProtocolPolicy: https-only
         CacheBehaviors:
@@ -76,11 +77,12 @@ Resources:
             CachedMethods:
               - GET
               - HEAD
-            CachePolicyId: !GetAtt CachePolicyLongCacheQsHost.Id
+            CachePolicyId: !Ref CachePolicyLongCacheQsHost
             Compress: true
             FunctionAssociations:
               - FunctionARN: !GetAtt CloudfrontFunction.FunctionARN
                 EventType: "viewer-request"
+            ResponseHeadersPolicyId: !Ref CacheResponseHeadersPolicy
             TargetOriginId: Api Gateway
             ViewerProtocolPolicy: https-only
           #=====================================
@@ -98,12 +100,12 @@ Resources:
             CachedMethods:
               - GET
               - HEAD
-            CachePolicyId: !GetAtt CachePolicyGeoHeadersQs.Id
+            CachePolicyId: !Ref CachePolicyGeoHeadersQs
             Compress: true
             FunctionAssociations:
               - FunctionARN: !GetAtt CloudfrontFunction.FunctionARN
                 EventType: "viewer-request"
-            #ResponseHeadersPolicyId: 5cc3b908-e619-4b99-88e5-2cf7f45965bd #TODO
+            ResponseHeadersPolicyId: !Ref CacheResponseHeadersPolicy
             TargetOriginId: Api Gateway
             ViewerProtocolPolicy: https-only
           #=====================================
@@ -121,12 +123,12 @@ Resources:
             CachedMethods:
               - GET
               - HEAD
-            CachePolicyId: !GetAtt CachePolicyGeoHeadersQs.Id
+            CachePolicyId: !Ref CachePolicyGeoHeadersQs
             Compress: true
             FunctionAssociations:
               - FunctionARN: !GetAtt CloudfrontFunction.FunctionARN
                 EventType: "viewer-request"
-            #ResponseHeadersPolicyId: 5cc3b908-e619-4b99-88e5-2cf7f45965bd #TODO
+            ResponseHeadersPolicyId: !Ref CacheResponseHeadersPolicy
             TargetOriginId: Api Gateway
             ViewerProtocolPolicy: https-only
           #=====================================
@@ -144,7 +146,7 @@ Resources:
           #   FunctionAssociations:
           #     - FunctionARN: !GetAtt CloudfrontFunction.FunctionARN
           #       EventType: "viewer-request"
-          #   ResponseHeadersPolicyId: 5cc3b908-e619-4b99-88e5-2cf7f45965bd #TODO
+          #   ResponseHeadersPolicyId: !Ref CacheResponseHeadersPolicy
           #   TargetOriginId: Api Gateway
           #   ViewerProtocolPolicy: https-only
           #=====================================
@@ -167,7 +169,7 @@ Resources:
           #   FunctionAssociations:
           #     - FunctionARN: !GetAtt CloudfrontFunction.FunctionARN
           #       EventType: "viewer-request"
-          #   ResponseHeadersPolicyId: d433d2a9-5c36-45eb-a99e-a295942cd9f7 #TODO
+          #   ResponseHeadersPolicyId: !Ref CacheResponseHeadersPolicy
           #   TargetOriginId: Api Gateway
           #   ViewerProtocolPolicy: https-only
           #=====================================
@@ -180,11 +182,12 @@ Resources:
             CachedMethods:
               - GET
               - HEAD
-            CachePolicyId: !GetAtt CachePolicyGeoHeadersQs.Id
+            CachePolicyId: !Ref CachePolicyGeoHeadersQs
             Compress: true
             FunctionAssociations:
               - FunctionARN: !GetAtt CloudfrontFunction.FunctionARN
                 EventType: "viewer-request"
+            ResponseHeadersPolicyId: !Ref CacheResponseHeadersPolicy
             TargetOriginId: Api Gateway
             ViewerProtocolPolicy: https-only
           #=====================================
@@ -197,7 +200,8 @@ Resources:
             CachedMethods:
               - GET
               - HEAD
-            CachePolicyId: !GetAtt CachePolicyLongCacheQsHost.Id
+            CachePolicyId: !Ref CachePolicyLongCacheQsHost
             Compress: true
+            ResponseHeadersPolicyId: !Ref CacheResponseHeadersPolicy
             TargetOriginId: Vercel
             ViewerProtocolPolicy: https-only

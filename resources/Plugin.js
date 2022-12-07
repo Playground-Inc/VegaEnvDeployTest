@@ -28,9 +28,20 @@ const conf = (attr, stage, region) => {
       dev: "_DEV",
       default: "_DEV_" + stage.toUpperCase().replaceAll("-", "_"),
     },
-    elasticacheInstance: {
-      prod: "cache.m6g.large",
-      default: "cache.t2.micro",
+    // elasticacheInstance: {
+    //   prod: "cache.m6g.large",
+    //   default: "cache.t2.micro",
+    // },
+    memoryDbName: {
+      default: "vega-" + stage,
+    },
+    memoryDbNodesType: {
+      prod: "db.r6g.large",
+      default: "db.t4g.small",
+    },
+    memoryDbReplica: {
+      prod: 1,
+      default: 0,
     },
     hostAssets: {
       prod: "assets.playgrnd.media",
@@ -180,17 +191,23 @@ class VegaPlugin {
           }
 
           /**
-           * S3 Allowed origins
+           * Allowed origins from
            */
-          if (address === "s3AllowedOrigins") {
+          if (address === "allowedOrigins") {
             let origins = [];
 
-            if (stage !== "prod") origins.push("localhost:*");
+            if (stage !== "prod") origins.push("http://localhost:3000");
 
-            // loop domains for adding "*" as domain wildcard
+            origins.push("https://" + conf("hostAuth", stage));
+
+            // loop domains
             for (const app in apps)
-              for (const domain in apps[app].domains)
-                origins.push("https://*." + domain);
+              for (const domain in apps[app].domains) {
+                if (stage == "prod") origins.push("https://" + domain);
+                origins.push(
+                  "https://" + conf("subDomain", stage) + "." + domain
+                );
+              }
 
             return {
               value: origins,
@@ -277,9 +294,17 @@ class VegaPlugin {
           /**
            * Deploy Elasticache?
            */
-          if (address === "elasticache")
+          // if (address === "elasticache")
+          //   return {
+          //     value: env.CREATE_CACHE_CLUSTER ? "Elasticache" : "Empty",
+          //   };
+
+          /**
+           * Deploy MemoryDb?
+           */
+          if (address === "memorydb")
             return {
-              value: env.CREATE_CACHE_CLUSTER ? "Elasticache" : "Empty",
+              value: env.CREATE_CACHE_CLUSTER ? "MemoryDb" : "Empty",
             };
 
           /**
@@ -293,22 +318,75 @@ class VegaPlugin {
           /**
            * Get Redis Cluster Endpoint
            */
-          if (address === "redisClusterEndpoint")
+          // if (address === "redisClusterEndpoint")
+          //   return {
+          //     value: env.CREATE_CACHE_CLUSTER
+          //       ? {
+          //           "Fn::GetAtt": [
+          //             "ElasticCacheCluster",
+          //             "RedisEndpoint.Address",
+          //           ],
+          //         }
+          //       : false,
+          //   };
+
+          /**
+           * Get Memory Db Endpoint
+           */
+          if (address === "memoryDbEndpoint") {
+            // Find default stage c:uster if not creating a new one
+            const provider = serverless.getProvider("aws");
+            const data = await provider.request("MemoryDB", "describeClusters");
+
+            if (!env.CREATE_CACHE_CLUSTER) {
+              const clusterToFind = conf("memoryDbName", stage, region);
+              for (let i = 0; i < data.Clusters.length; i++)
+                if (data.Clusters[i].Name === clusterToFind)
+                  return {
+                    value: data.Clusters[i].Name,
+                  };
+            }
+
             return {
-              value: env.CREATE_CACHE_CLUSTER
-                ? {
-                    "Fn::GetAtt": [
-                      "ElasticCacheCluster",
-                      "RedisEndpoint.Address",
-                    ],
-                  }
-                : false,
+              //value: "!GetAtt [MemoryDbCluster, ClusterEndpoint.Address]",
+              value: {
+                "Fn::GetAtt": ["MemoryDbCluster", "ClusterEndpoint.Address"],
+              },
             };
+          }
+
+          /**
+           * Create MemoryDB Cluster Subnet Group
+           */
+          if (address === "memoryDbClusterSubnetGroup") {
+            let numZones = {
+              "us-east-1": 3,
+            }[region]; // If other region than us-east-1, add here
+
+            const subnetIds = [];
+            for (let i = 1; i <= numZones; i += 1)
+              subnetIds.push({ Ref: `DBSubnet${i}` });
+
+            return {
+              value: {
+                Type: "AWS::MemoryDB::SubnetGroup",
+                Properties: {
+                  SubnetGroupName: {
+                    Ref: "AWS::StackName",
+                  },
+                  Description: {
+                    Ref: "AWS::StackName",
+                  },
+                  SubnetIds: subnetIds,
+                },
+              },
+            };
+          }
 
           const valueFromStage = conf(address, stage, region);
 
           // Debug
-          // log(address, valueFromStage);
+          log(address, valueFromStage);
 
           // Resolver is expected to return an object with the value in the `value` property:
           return {

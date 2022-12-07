@@ -36,12 +36,14 @@ provider:
   environment:
     STAGE: ${sls:stage}
     BRANCH: ${file(./.serverlessEnv.yml):BRANCH}
-    REDIS_CLUSTER_ENDPOINT: ${vega:redisClusterEndpoint}
+    #REDIS_CLUSTER_ENDPOINT: ${vega:redisClusterEndpoint}
+    MEMORY_DB_ENDPOINT: ${vega:memoryDbEndpoint}
     DYNAMO_SFX: ${vega:dynamoSfx}
     BUCKET: ${vega:s3Bucket}
     HOST_ASSETS: ${vega:hostAssets}
     HOST_AUTH: ${vega:hostAuth}
     PWD_SALT: ${ssm:PWD_SALT}
+    MEMORY_DB_PWD: ${ssm:MEMORY_DB_PWD}
     REGION: ${aws:region}
     SUB_DOMAIN: ${vega:subDomain}
     SUB_DOMAIN_API: ${vega:subDomainApi}
@@ -53,6 +55,11 @@ custom:
     subnetGroups:
       - elasticache
     exportOutputs: true
+    # MemoryDb only support 3 first us-east-1 zones
+    # zones:
+    #   - us-east-1a
+    #   - us-east-1b
+    #   - us-east-1c
   esbuild:
     bundle: true
     minify: false
@@ -81,4 +88,5 @@ resources:
   - ${file(resources/CloudfrontDistribution.yml)}
   - ${file(resources/Route53.yml)}
   - ${file(resources/${vega:vpc}.yml)}
-  - ${file(resources/${vega:elasticache}.yml)}
+  #- ${file(resources/${vega:elasticache}.yml)}
+  - ${file(resources/${vega:memorydb}.yml)}
