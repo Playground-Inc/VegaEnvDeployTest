@@ -69,6 +69,10 @@ functions:
     handler: handler.hello
     events:
       - httpApi: GET /v7/hello
+  helloAuth:
+    handler: handler.helloAuth
+    events:
+      - httpApi: GET /v7/a/hello
   db:
     handler: handler.db
     events:
@@ -90,3 +94,4 @@ resources:
   - ${file(resources/${vega:vpc}.yml)}
   #- ${file(resources/${vega:elasticache}.yml)}
   - ${file(resources/${vega:memorydb}.yml)}
+  - ${file(resources/waf.yml)}

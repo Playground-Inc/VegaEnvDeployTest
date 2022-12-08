@@ -1,0 +1,211 @@
+---
+Resources:
+  #
+  # Create WAF (aws firewall)
+  #
+  # https://docs.aws.amazon.com/fr_fr/AWSCloudFormation/latest/UserGuide/AWS_WAFv2.html
+  # https://docs.aws.amazon.com/cli/latest/reference/wafv2/index.html
+  #
+  # Lister un web-acl:
+  # aws wafv2 get-web-acl --id fe4beae0-3cfb-491f-a4a0-d1c0b66fad1c --output yaml --profile prod --scope=CLOUDFRONT --name WAF_Prod --region us-east-1
+  #
+  # But du waf:
+  # - Détecter VPN et Hosting Providers et ajouter dans headers
+  # - Whitelister des URLs / cookies / headers
+  # - Limiter appels API pour une même IP
+  # - Refuser les méthodes POST, PUT, DELETE pour les hosting providers et les bots
+  # - Vérifier le captcha?
+  # - (dev only) Autoriser seulement les IPs whitelistée
+  # - (prod only) Refuser les sources maps ?
+  WafWebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      # CaptchaConfig:
+      #   CaptchaConfig
+      # CustomResponseBodies:
+      #   Key : Value
+      DefaultAction:
+        Allow: {}
+      Description: ${self:service} ${sls:stage}
+      Name: WAF-${self:service}-${sls:stage}
+      Rules:
+        # Block Bad Reputation Ips
+        # https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-ip-rep.html#aws-managed-rule-groups-ip-rep-anonymous
+        - Name: AWS-IpReputationList
+          OverrideAction:
+            None: {}
+          Priority: 0
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesAmazonIpReputationList
+              VendorName: AWS
+              ScopeDownStatement:
+                NotStatement:
+                  Statement:
+                    ByteMatchStatement:
+                      FieldToMatch:
+                        UriPath: {}
+                      PositionalConstraint: STARTS_WITH
+                      SearchString: /ph/
+                      TextTransformations:
+                        - Priority: 0
+                          Type: NONE
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: WAF-IpReputation-${self:service}-${sls:stage}
+            SampledRequestsEnabled: true
+        # Block Bad Bots
+        # https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-bot.html
+        - Name: AWS-Bots
+          OverrideAction:
+            None: {}
+          Priority: 1
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesBotControlRuleSet
+              ExcludedRules:
+                - Name: CategoryAdvertising
+                - Name: CategoryArchiver
+                - Name: CategorySearchEngine
+                - Name: CategorySeo
+                - Name: CategorySocialMedia
+                #- Name: SignalNonBrowserUserAgent
+              VendorName: AWS
+              ScopeDownStatement:
+                NotStatement:
+                  Statement:
+                    ByteMatchStatement:
+                      FieldToMatch:
+                        UriPath: {}
+                      PositionalConstraint: STARTS_WITH
+                      SearchString: /ph/
+                      TextTransformations:
+                        - Priority: 0
+                          Type: NONE
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: WAF-Bots-${self:service}-${sls:stage}
+            SampledRequestsEnabled: true
+        # Detect Anon Ip & Hosting Provider (by aws)
+        # https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-ip-rep.html#aws-managed-rule-groups-ip-rep-anonymous
+        - Name: AWS-AnonIpList
+          OverrideAction:
+            Count: {} # Just count
+          Priority: 2
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesAnonymousIpList
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: WAF-AnonymousIpList-${self:service}-${sls:stage}
+            SampledRequestsEnabled: true
+        # Detect Anon Ip, Bot & Hosting Provider (and set it in headers)
+        - Name: Detect-Anon-Hosting-Provider
+          OverrideAction:
+            None: {}
+          Priority: 3
+          Statement:
+            RuleGroupReferenceStatement:
+              ARN: !GetAtt WafDetectAnonBotHostingProvider.Arn
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: WAF-Detect-Anon-Bot-Hosting-Provider-${self:service}-${sls:stage}
+            SampledRequestsEnabled: true
+      Scope: CLOUDFRONT
+      Tags:
+        - Key: STAGE
+          Value: ${self:custom.env.STAGE}
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: WAF-${self:service}-${sls:stage}
+        SampledRequestsEnabled: true
+  #
+  # Rule groups
+  #
+  # List groups:
+  # aws wafv2 list-rule-groups --output yaml --profile prod --scope=CLOUDFRONT --region us-east-1
+  #
+  # Get rule group:
+  # aws wafv2 get-rule-group --output yaml --profile prod --name Check_Anon_IPs --id 951f47b9-a432-464f-89cb-0837d1e78c45 --scope=CLOUDFRONT --region us-east-1
+  #
+  # https://docs.aws.amazon.com/cli/latest/reference/wafv2/list-rule-groups.html
+  #
+  # https://docs.aws.amazon.com/fr_fr/AWSCloudFormation/latest/UserGuide/aws-resource-wafv2-rulegroup.html
+  # https://docs.aws.amazon.com/fr_fr/AWSCloudFormation/latest/UserGuide/aws-properties-wafv2-rulegroup-rule.html
+  # https://docs.aws.amazon.com/cli/latest/reference/wafv2/list-rule-groups.html
+
+  #
+  # Detect Anon Ip, bot & Hosting Provider
+  # https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-ip-rep.html#aws-managed-rule-groups-ip-rep-anonymous
+  WafDetectAnonBotHostingProvider:
+    Type: AWS::WAFv2::RuleGroup
+    Properties:
+      Capacity: 6
+      Name: WAF-Detect-Anon-Bot-Hosting-Provider-${self:service}-${sls:stage}
+      Rules:
+        # Detect Anon Ip
+        - Action:
+            Count:
+              CustomRequestHandling:
+                InsertHeaders:
+                  - Name: is-anon-ip
+                    Value: "1"
+          Name: DetectAnonIp
+          Priority: 0
+          # RuleLabels:
+          #   - Name: badip:anon
+          Statement:
+            LabelMatchStatement:
+              Key: awswaf:managed:aws:anonymous-ip-list:AnonymousIPList
+              Scope: LABEL
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: WAF-Rule-Detect-Anon-Ip-${self:service}-${sls:stage}
+            SampledRequestsEnabled: true
+        # Detect Hosting provider Ip
+        - Action:
+            Count:
+              CustomRequestHandling:
+                InsertHeaders:
+                  - Name: is-hosting-provider
+                    Value: "1"
+          Name: DetectHostingProvider
+          Priority: 1
+          # RuleLabels:
+          #   - Name: badip:hosting
+          Statement:
+            LabelMatchStatement:
+              Key: awswaf:managed:aws:anonymous-ip-list:HostingProviderIPList
+              Scope: LABEL
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: WAF-Rule-Detect-Hosting-Provider-${self:service}-${sls:stage}
+            SampledRequestsEnabled: true
+        # Detect Bot
+        - Action:
+            Count:
+              CustomRequestHandling:
+                InsertHeaders:
+                  - Name: is-bot
+                    Value: "1"
+          Name: DetectBot
+          Priority: 2
+          # RuleLabels:
+          #   - Name: badip:bot
+          Statement:
+            LabelMatchStatement:
+              Key: "awswaf:managed:aws:bot-control:"
+              Scope: NAMESPACE
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: WAF-Rule-Detect-Bot-${self:service}-${sls:stage}
+            SampledRequestsEnabled: true
+      Scope: CLOUDFRONT
+      Tags:
+        - Key: STAGE
+          Value: ${self:custom.env.STAGE}
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: WAF-RuleGroup-Detect-Anon-Bot-Hosting-Provider-${self:service}-${sls:stage}
+        SampledRequestsEnabled: true

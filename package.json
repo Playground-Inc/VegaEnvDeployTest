@@ -25,6 +25,6 @@
     "serverless-vpc-plugin": "^1.0.5"
   },
   "dependencies": {
-    "ioredis": "^5.2.4"
+    "redis": "^4.5.1"
   }
 }

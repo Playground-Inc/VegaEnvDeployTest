@@ -146,6 +146,8 @@ class VegaPlugin {
               },
             };
 
+            log.success(conf("hostAuth", stage));
+
             // loop domains for adding "*" as domain wildcard
             for (const app in apps)
               for (const domain in apps[app].domains) {

@@ -13,6 +13,7 @@ Resources:
         HttpVersion: http2and3
         PriceClass: PriceClass_100
         Aliases: ${vega:cloudfrontAliases}
+        WebACLId: !GetAtt WafWebACL.Arn
         ViewerCertificate:
           AcmCertificateArn: !Ref Certificate
           SslSupportMethod: sni-only
