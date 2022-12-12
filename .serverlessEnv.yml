@@ -1,6 +1,6 @@
-BRANCH: dev
-STAGE: dev
+BRANCH: main
+STAGE: prod
 CREATE_DB: true
 CREATE_CACHE_CLUSTER: true
 CREATE_BUCKET: true
-AWS_PROFILE: dev
+AWS_PROFILE: prod
