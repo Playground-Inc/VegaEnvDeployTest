@@ -130,7 +130,7 @@ exports.db = async () => {
       });
     }
 
-    await redisClient.zAdd("contest:455", parts));
+    await redisClient.zAdd("contest:455", parts);
 
     const setPerfAdd = process.hrtime(hrstartSetPerfAdd);
 
