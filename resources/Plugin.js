@@ -10,13 +10,13 @@ const conf = (attr, stage, region) => {
   const attrs = {
     s3DeploymentBucket: {
       prod: "vega-deployment-" + region + "-prod",
-      dev: "vega-deployment-" + region + "-dev",
-      default: "vega-deployment-" + region + "-" + stage + "-dev",
+      preprod: "vega-deployment-" + region + "-prod",
+      default: "vega-deployment-" + region + "-dev",
     },
     s3Bucket: {
       prod: "vega-" + region + "-prod",
       preprod: "vega-" + region + "-prod",
-      default: "vega-" + region + "-dev",
+      default: "vega-" + region + "-" + stage + "-dev",
     },
     certificateDefault: {
       prod: "playgrnd.media",
@@ -347,6 +347,9 @@ class VegaPlugin {
                   return {
                     value: data.Clusters[i].Name,
                   };
+              return {
+                value: "error",
+              };
             }
 
             return {

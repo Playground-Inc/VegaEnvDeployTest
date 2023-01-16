@@ -1,4 +1,4 @@
-service: vega-deployment
+service: vega-sls
 
 frameworkVersion: "3"
 
@@ -56,10 +56,10 @@ custom:
       - elasticache
     exportOutputs: true
     # MemoryDb only support 3 first us-east-1 zones
-    # zones:
-    #   - us-east-1a
-    #   - us-east-1b
-    #   - us-east-1c
+    zones:
+      - us-east-1a
+      - us-east-1b
+      - us-east-1c
   esbuild:
     bundle: true
     minify: false
@@ -77,11 +77,6 @@ functions:
     handler: handler.db
     events:
       - httpApi: GET /v7/db
-  # export:
-  #   handler: export.db
-  #   timeout: 900
-  #   events:
-  #     - httpApi: GET /v7/export
 
 resources:
   - ${file(resources/${vega:s3}.yml)}

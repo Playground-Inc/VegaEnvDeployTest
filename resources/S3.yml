@@ -16,7 +16,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      BucketName: vega-us-east-1-dev
+      BucketName: ${vega:s3Bucket}
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
